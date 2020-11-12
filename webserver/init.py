@@ -3,11 +3,8 @@ from flask import render_template
 import mysql.connector
 
 app = Flask(__name__)
-db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb");
-cur = db.cursor();
-cur.execute("select * from test");
-for row in cur:
-    print (row)
+db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
+
 
 @app.route('/')
 def start():
@@ -16,7 +13,13 @@ def start():
 @app.route('/login', methods = ["POST","GET"])
 def login():
     if(request.method == "POST"):
-        return False	
+        username = request.form["username"]
+        password = request.form["password"]
+        if validate_user(username, password):
+            return render_template('success.html')
+        else:
+            return render_template('webpage.html')
+        
 @app.route('/register', methods = ["POST","GET"])
 def reqister():
     if(request.method == "POST"):
@@ -29,4 +32,8 @@ def reg_user(username, password):
 
 
 def validate_user(username, password):
-    return False
+    cur = db.cursor()
+    cur.execute("select name from test where %s", username)
+    result = cur.fetchone() is not None    
+    cur.close()
+    return result
