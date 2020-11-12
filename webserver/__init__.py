@@ -39,3 +39,6 @@ def validate_user(username, password):
     result = cur.fetchall()
     cur.close()
     return result
+
+if __name__ == "__main__":
+    app.run()
