@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import render_template
+from flask import request
 import mysql.connector
 
 app = Flask(__name__)
@@ -13,7 +14,7 @@ def start():
 @app.route('/login', methods = ["POST","GET"])
 def login():
     if(request.method == "POST"):
-        username = request.form["username"]
+        username = str(request.form["username"])
         password = request.form["password"]
         if validate_user(username, password):
             return render_template('success.html')
@@ -33,7 +34,8 @@ def reg_user(username, password):
 
 def validate_user(username, password):
     cur = db.cursor()
-    cur.execute("select name from test where %s", username)
-    result = cur.fetchone() is not None    
+    print(str(username))
+    cur.execute("select name from test where name = '"+ username+"'")
+    result = cur.fetchall()
     cur.close()
     return result
