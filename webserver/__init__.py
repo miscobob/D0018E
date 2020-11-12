@@ -9,7 +9,11 @@ db = mysql.connector.connect(user="python", passwd ="password", host ="localhost
 
 @app.route('/')
 def start():
-    return render_template('webpage.html')
+    return render_template('index.html')
+
+@app.route('/<name>')
+def route_html(name):
+    return render_template(name)
 
 @app.route('/login', methods = ["POST","GET"])
 def login():
@@ -20,14 +24,13 @@ def login():
             return render_template('success.html')
         else:
             return render_template('webpage.html')
-        
+
 @app.route('/register', methods = ["POST","GET"])
 def reqister():
     if(request.method == "POST"):
         request.form["username"]
-        
-        
-        
+
+
 def reg_user(username, password):
     return True
 
