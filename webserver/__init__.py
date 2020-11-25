@@ -4,7 +4,8 @@ from flask import request
 import mysql.connector
 
 app = Flask(__name__)
-db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
+#db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
+
 
 
 @app.route('/')
@@ -22,13 +23,13 @@ def login():
         password = request.form["password"]
         if validate_user(username, password):
             return render_template('success.html')
-        else:
-            return render_template('webpage.html')
+    return render_template('login.html')
 
 @app.route('/register', methods = ["POST","GET"])
 def reqister():
     if(request.method == "POST"):
         request.form["username"]
+    return render_template('register.html', error = "NOT_YET_IMPLIMENTED");
 
 
 def reg_user(username, password):
@@ -36,6 +37,7 @@ def reg_user(username, password):
 
 
 def validate_user(username, password):
+    return True
     cur = db.cursor()
     print(str(username))
     cur.execute("select name from test where name = '"+ username+"'")

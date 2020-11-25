@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h1>Welcome to the BEST bike Shop in town!<h1>
+<form action="/login" method = "post">
+<p><input type="text" name= "username"></p>
+<p><input type="text" name= "password"></p>
+<p><input type="submit" value = "login"></p>
+</form>
+{% endblock %}
