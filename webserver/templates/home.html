@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+{% block title %}Home{% endblock %}
+{% block header %}
+<h2>The bikeshop</h2>
+{% endblock %}
 {% block content %}
-<h1>Welcome to the BEST bike Shop in town!<h1>
-<form action="/login" method = "post">
-<p><input type="text" name= "username"></p>
-<p><input type="text" name= "password"></p>
-<p><input type="submit" value = "login"></p>
-</form>
+<p>Welcome to the BEST bike Shop in town!</p>
+<p>Here you can buy the best bikes to the best price, AND ITS JUST A ClICK AWAY!</p>
 {% endblock %}

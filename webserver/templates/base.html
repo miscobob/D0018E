@@ -9,27 +9,76 @@
     <!-- Import other AMP Extensions here -->
     <style amp-custom>
 		body {
-        background-color: white;
-      }
-      amp-img {
-        border: 5px solid black;
-      }
+			background-color: white;
+		}
+		amp-img {
+			border: 5px solid black;
+		}
 
-      amp-img.grey-placeholder {
-        background-color: grey;
-      }
+		amp-img.grey-placeholder {
+			background-color: grey;
+		}
+		#outer
+		{
+			width:100%;
+			text-align: center;
+		}
+		.inner
+		{
+			display: inline-block;
+		}
+
+		.header
+		{	
+			text-align: center;
+			background-color: #f1f1f1;
+			height:20;
+		}
+		.headerbar
+		{
+			text-align: center;
+			background-color: #A8A8A8;
+			height:15;
+		}
+		.body
+		{
+			float: left;
+			background-color: #EBEBEB;
+			width: 100%;
+			height:65%;
+		}
+		p
+		{
+			padding-left: 10px;
+		}
+
     </style>
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
     <link rel="canonical" href=".">
     <title>{% block title %}{% endblock %}</title>
   </head>
   <body>
-	<p>
-		<form action="/login" method = "get"><input type="submit" value = "login"></form>
-		<form action="/register" method = "get"><input type="submit" value = "register"></form>
-	</p>
-	{% block form %}
+	<div class="header">
+	{% block header %}
 	{% endblock %}
-	<h2>{{error}}<h2>
+	</div>
+	<div class="headerbar">
+		<form method= "get">
+			<div id="outer">
+				<div class="inner">
+					<button type="submit" formaction = "/" value = "home">Home</button>
+					<button type="submit" formaction="/login" value = "login">Login</button>
+					<button type="submit" formaction="/register" value = "register">Register</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="body">
+		{% block content %}
+		{% endblock %}
+		{% block form %}
+		{% endblock %}
+		<h2>{{error}}<h2>
+	</div>
   </body>
 </html>
