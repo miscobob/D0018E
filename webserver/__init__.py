@@ -1,11 +1,12 @@
 from flask import Flask
 from flask import render_template
 from flask import request
+from flask import redirect
 import mysql.connector
 
 app = Flask(__name__)
 db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
-
+conn = db.cursor()
 
 @app.route('/')
 def start():
@@ -24,6 +25,17 @@ def login():
             return render_template('success.html')
         else:
             return render_template('webpage.html')
+
+@app.route('/sql', methods = ["POST","GET"])
+def sql_insert():
+    if(request.method == "POST"):
+        id = int(request.form["id"])
+        name = str(request.form["name"])
+        conn.execute('INSERT INTO test VALUES('+str(id)+',"'+name+'")')
+        db.commit()
+        return render_template('sql.html')
+    elif(request.method == "GET"):
+        return redirect('/cgi-bin/data.py')
 
 @app.route('/register', methods = ["POST","GET"])
 def reqister():
