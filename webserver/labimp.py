@@ -24,6 +24,10 @@ class labdb:
         self.db = databas('python', 'password', 'localhost', 'labdb')
         self.accountsTable = 'Accounts (UserName, Email, Password, AccessLevel)'
 
+    def hasUserWith(self,username = "", email = ""):
+        if not username or not email:
+            return False
+        return False
 
     def req_user(self, user, email, pw):
         v = '\'' + user + '\','+ '\'' + email + '\','+ '\'' + pw +'\','+ '\'user\''
