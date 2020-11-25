@@ -5,7 +5,7 @@ class databas:
         self.db = mysql.connector.connect(user=usr, passwd=password, host=hst, database=dbname)
         self.conn = self.db.cursor()
 
-    def insertIntoTable(self, values, table):
+    def insertIntoTable(self, table, values):
         conn.execute('INSERT INTO '+table+' VALUES('+values+')')
         self.db.commit()
 
@@ -18,11 +18,14 @@ class databas:
 
 
 class labdb:
-    db = None
+    
     def __init__(self):
-        self.db = databas("python", "password", "localhost", "labdb")
+        self.db = databas('python', 'password', 'localhost', 'labdb')
+        self.accountsTable = 'Accounts (UserName, E-mail, Password, Access-Level)'
 
-#    def reqister(self):
+    def req_user(self, user, email, pw):
+        v = '\'' + user + '\','+ '\'' + email + '\','+ '\'' + pw + '\','
+        self.db.insertIntoTable(self.accountsTable, v)
 
 
     def sql_insert(self, id, name):

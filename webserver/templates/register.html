@@ -4,13 +4,14 @@
 <h2>Register user</h2>
 {% endblock %}
 {% block content %}
-<p></p>
+<p>Fill in your user info in register form to create a new user</p>
 {% endblock %}
 {% block form %}
 <p>Register form<p>
 <form action="/register" method = "post">
-<p><input type="text" name= "username"></p>
-<p><input type="password" name= "password"></p>
+<p>Enter username = <input type="text" name= "username"></p>
+<p>Enter email = <input type="email" name="email"></p>
+<p>Enter password = <input type="password" name= "password"></p>
 <p><input type="submit" value = "register"></p>
 </form>
 {% endblock %}
