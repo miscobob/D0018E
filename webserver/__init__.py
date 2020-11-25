@@ -40,14 +40,14 @@ def register():
         username = request.form["username"]
         email = request.form["email"]
         password = request.form["password"]
-        if re.findall("[\W]",username):
-            return render_template('/register', error = "No whitespace or special are aloud in user name")
+        if re.findall("[\W]",username) or not username:
+            return render_template('register.html', error = "No whitespace or special are aloud in user name")
         if not re.match("^[\w]+([\w]|\-|\_|\.)*[\w]+@[\w]+\.[\w]+$", email):
-            return render_template('/register', error = "Email ")
-        if re.findall("[\s]", password):
-            return render_template('/register', error = "No whitespace are aloud in password")
+            return render_template('register.html', error = "Email ")
+        if re.findall("[\s]", password) or not password:
+            return render_template('register.html', error = "No whitespace are aloud in password")
         datab.req_user(username, email, password)
-        return redirect('/login')
+        return redirect('login.html')
     return render_template('register.html')
 
 

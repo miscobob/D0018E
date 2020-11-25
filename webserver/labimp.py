@@ -6,7 +6,8 @@ class databas:
         self.conn = self.db.cursor()
 
     def insertIntoTable(self, table, values):
-        conn.execute('INSERT INTO '+table+' VALUES('+values+')')
+        print('INSERT INTO ',table,' VALUES(',values,')')
+        self.conn.execute('INSERT INTO '+table+' VALUES('+values+')')
         self.db.commit()
 
     def returnTable(self, table):
@@ -18,13 +19,14 @@ class databas:
 
 
 class labdb:
-    
+
     def __init__(self):
         self.db = databas('python', 'password', 'localhost', 'labdb')
-        self.accountsTable = 'Accounts (UserName, E-mail, Password, Access-Level)'
+        self.accountsTable = 'Accounts (UserName, Email, Password, AccessLevel)'
+
 
     def req_user(self, user, email, pw):
-        v = '\'' + user + '\','+ '\'' + email + '\','+ '\'' + pw + '\','
+        v = '\'' + user + '\','+ '\'' + email + '\','+ '\'' + pw +'\','+ '\'user\''
         self.db.insertIntoTable(self.accountsTable, v)
 
 
