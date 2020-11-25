@@ -8,19 +8,28 @@
     <script async src="https://cdn.ampproject.org/v0.js"></script>
     <!-- Import other AMP Extensions here -->
     <style amp-custom>
-    /* Add your styles here */
+		body {
+        background-color: white;
+      }
+      amp-img {
+        border: 5px solid black;
+      }
+
+      amp-img.grey-placeholder {
+        background-color: grey;
+      }
     </style>
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
     <link rel="canonical" href=".">
-    <title>My AMP Page</title>
+    <title>{% block title %}{% endblock %}</title>
   </head>
   <body>
-    <h1>This is a start</h1>
-	<p>Login form<p>
-	<form action="/login" method = "post">
-	<p><input type="text" name= "username"></p>
-	<p><input type="text" name= "password"></p>
-	<p><input type="submit" value = "login"></p>
-	</form>
+	<p>
+		<form action="/login" method = "get"><input type="submit" value = "login"></form>
+		<form action="/register" method = "get"><input type="submit" value = "register"></form>
+	</p>
+	{% block form %}
+	{% endblock %}
+	<h2>{{error}}<h2>
   </body>
 </html>

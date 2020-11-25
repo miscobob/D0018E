@@ -5,12 +5,18 @@ from flask import redirect
 import mysql.connector
 
 app = Flask(__name__)
+<<<<<<< HEAD
 db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
 conn = db.cursor()
+=======
+#db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
+
+
+>>>>>>> stash
 
 @app.route('/')
 def start():
-    return render_template('index.html')
+    return render_template('home.html')
 
 @app.route('/<name>')
 def route_html(name):
@@ -23,8 +29,7 @@ def login():
         password = request.form["password"]
         if validate_user(username, password):
             return render_template('success.html')
-        else:
-            return render_template('webpage.html')
+    return render_template('login.html')
 
 @app.route('/sql', methods = ["POST","GET"])
 def sql_insert():
@@ -41,6 +46,7 @@ def sql_insert():
 def reqister():
     if(request.method == "POST"):
         request.form["username"]
+    return render_template('register.html', error = "NOT_YET_IMPLIMENTED");
 
 
 def reg_user(username, password):
@@ -48,6 +54,7 @@ def reg_user(username, password):
 
 
 def validate_user(username, password):
+    return True
     cur = db.cursor()
     print(str(username))
     cur.execute("select name from test where name = '"+ username+"'")
