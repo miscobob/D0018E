@@ -3,16 +3,16 @@ from flask import render_template
 from flask import request
 from flask import redirect
 import mysql.connector
+from . import labimp
 
 app = Flask(__name__)
-<<<<<<< HEAD
+
 db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
 conn = db.cursor()
-=======
+
 #db = mysql.connector.connect(user="python", passwd ="password", host ="localhost", database="labdb")
 
-
->>>>>>> stash
+datab = labimp.labdb()
 
 @app.route('/')
 def start():
@@ -32,20 +32,21 @@ def login():
     return render_template('login.html')
 
 @app.route('/sql', methods = ["POST","GET"])
-def sql_insert():
+def sql():
     if(request.method == "POST"):
-        id = int(request.form["id"])
+        id = str(request.form["id"])
         name = str(request.form["name"])
-        conn.execute('INSERT INTO test VALUES('+str(id)+',"'+name+'")')
-        db.commit()
-        return render_template('sql.html')
+        datab.sql_insert(id, name)
     elif(request.method == "GET"):
         return redirect('/cgi-bin/data.py')
 
 @app.route('/register', methods = ["POST","GET"])
-def reqister():
+def register():
     if(request.method == "POST"):
         request.form["username"]
+        username = request.form["username"]
+        email = request.form["email"]
+        password = request.form["password"]
     return render_template('register.html', error = "NOT_YET_IMPLIMENTED");
 
 
