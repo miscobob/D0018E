@@ -3,7 +3,7 @@ import mysql.connector
 class databas:
     def __init__(self, usr, password, hst, dbname):
         self.db = mysql.connector.connect(user=usr, passwd=password, host=hst, database=dbname)
-        self.conn = self.db.cursor()
+        self.conn = self.db.cursor(buffered=True)
 
     def insertIntoTable(self, table, values):
         print('INSERT INTO ',table,' VALUES(',values,')')
@@ -37,3 +37,10 @@ class labdb:
     def sql_insert(self, id, name):
         self.db.conn.execute("INSERT INTO test VALUES(" +id+ ',"' +name+ '")')
         self.db.db.commit()
+
+    def validateUser(self, username, password):
+        self.db.conn.execute('select * from Accounts where UserName=%s and password=%s', (username, password))
+        if(self.db.conn.rowcount>0):
+            return True
+        else:
+            return False

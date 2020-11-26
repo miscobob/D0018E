@@ -1,7 +1,4 @@
-from flask import Flask
-from flask import render_template
-from flask import request
-from flask import redirect
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 import re
 from . import labimp
@@ -15,14 +12,17 @@ datab = labimp.labdb()
 def start():
     return render_template('home.html')
 
-
 @app.route('/login', methods = ["POST","GET"])
 def login():
     if(request.method == "POST"):
         username = str(request.form["username"])
-        password = request.form["password"]
+        password = str(request.form["password"])
         if validate_user(username, password):
             return render_template('success.html')
+        else:
+            return render_template('home.html')
+    if request.args.get("fromRegister"):
+        return render_template('login.html',message = "Success, a new account has been created you can now log in!")
     return render_template('login.html')
 
 @app.route('/sql', methods = ["POST","GET"])
@@ -47,14 +47,17 @@ def register():
         if not re.match("^[\w]+([\w]|\-|\_|\.)*[\w]+@[\w]+\.[\w]+$", email):
             return render_template('register.html', error = "Please submit a valid email address")
         if re.findall("[\s]", password) or not password:
-            return render_template('register.html', error = "No whitespace are aloud in password")
+            return render_template('register.hmtl', error = "No whitespace are aloud in password")
         datab.req_user(username, email, password)
-        return render_template('login.html', error = "Success, you can now log in")
+        return redirect(url_for('login',fromRegister=True))
     return render_template('register.html')
 
 
 def validate_user(username, password):
-    return True
+    if(datab.validateUser(username, password)):
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     app.run()
