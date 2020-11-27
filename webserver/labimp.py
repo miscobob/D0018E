@@ -16,7 +16,7 @@ class databas:
         for row in conn:
             tbl.append(row)
         return tbl
-select
+
 
 class labdb:
 

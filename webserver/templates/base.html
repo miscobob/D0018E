@@ -71,7 +71,7 @@
 						<button type="submit" formaction="/user/"+user value = "user">Account</button>
 					{% else %}
 						<button type="submit" formaction="/login" value = "login">Login</button>
-					{% end if %}
+					{% endif %}
 					<button type="submit" formaction="/register" value = "register">Register</button>
 				</div>
 			</div>
@@ -80,14 +80,14 @@
 	<div class="body">
 		{% if message %}
 			<p>{{message}}</p>
-		{% end if %}
+		{% endif %}
 		{% block content %}
 		{% endblock %}
 		{% block form %}
 		{% endblock %}
 		{% if error %}
 			<h2>{{error}}</h2>
-		{% end if %}
+		{% endif %}
 	</div>
   </body>
 </html>

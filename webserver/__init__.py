@@ -4,7 +4,7 @@ import re
 from . import labimp
 
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
 datab = labimp.labdb()
 
 
@@ -51,6 +51,10 @@ def register():
         datab.req_user(username, email, password)
         return redirect(url_for('login',fromRegister=True))
     return render_template('register.html')
+
+@app.route('/user/<username>', methods = ["POST","GET"])
+def user(username):
+    return render_template('user.html', user = username)
 
 
 def validate_user(username, password):
