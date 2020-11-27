@@ -67,19 +67,27 @@
 			<div id="outer">
 				<div class="inner">
 					<button type="submit" formaction = "/" value = "home">Home</button>
-					<button type="submit" formaction="/login" value = "login">Login</button>
+					{% if user %}
+						<button type="submit" formaction="/user/"+user value = "user">Account</button>
+					{% else %}
+						<button type="submit" formaction="/login" value = "login">Login</button>
+					{% end if %}
 					<button type="submit" formaction="/register" value = "register">Register</button>
 				</div>
 			</div>
 		</form>
 	</div>
 	<div class="body">
-		<p>{{message}}</p>
+		{% if message %}
+			<p>{{message}}</p>
+		{% end if %}
 		{% block content %}
 		{% endblock %}
 		{% block form %}
 		{% endblock %}
-		<h2>{{error}}</h2>
+		{% if error %}
+			<h2>{{error}}</h2>
+		{% end if %}
 	</div>
   </body>
 </html>

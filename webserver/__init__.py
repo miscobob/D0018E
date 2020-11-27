@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import mysql.connector
 import re
 from . import labimp
@@ -41,7 +41,7 @@ def register():
         email = request.form["email"]
         password = request.form["password"]
         if datab.hasUserWith(username = username, email = email):
-           return render_template('register.html', error = "User name is already taken")
+           return render_template('register.html', error = "User name or email is already used by other account")
         if re.findall("[\W]",username) or not username:
             return render_template('register.html', error = "No whitespace or special are aloud in user name")
         if not re.match("^[\w]+([\w]|\-|\_|\.)*[\w]+@[\w]+\.[\w]+$", email):
@@ -55,6 +55,7 @@ def register():
 
 def validate_user(username, password):
     if(datab.validateUser(username, password)):
+        session["UserName"] = username
         return True
     else:
         return False

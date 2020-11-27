@@ -16,18 +16,28 @@ class databas:
         for row in conn:
             tbl.append(row)
         return tbl
-
+select
 
 class labdb:
 
     def __init__(self):
         self.db = databas('python', 'password', 'localhost', 'labdb')
         self.accountsTable = 'Accounts (UserName, Email, Password, AccessLevel)'
-
+    
     def hasUserWith(self,username = "", email = ""):
-        if not username or not email:
+        """
+        Return if database either has a match for a given email or username,
+        if neither username or email is set beyond default value return false
+        """
+        if username and email:
+            self.db.conn.execute('select * from Accounts where UserName=%s or Email=%s', (username, email))
+        elif username:
+            self.db.conn.execute('select * from Accounts where UserName=%s', (username))
+        elif email:
+            self.db.conn.execute('select * from Accounts where Email=%s', (email))
+        else:
             return False
-        return False
+        return self.db.conn.rowcount > 0
 
     def req_user(self, user, email, pw):
         v = '\'' + user + '\','+ '\'' + email + '\','+ '\'' + pw +'\','+ '\'user\''
@@ -40,7 +50,7 @@ class labdb:
 
     def validateUser(self, username, password):
         self.db.conn.execute('select * from Accounts where UserName=%s and password=%s', (username, password))
-        if(self.db.conn.rowcount>0):
-            return True
-        else:
-            return False
+        for row in self.db.conn:
+            print(row)
+        return self.db.conn.rowcount > 0
+
