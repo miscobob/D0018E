@@ -1,56 +1,149 @@
+from cryptography.fernet import Fernet
 import mysql.connector
+from . import tables
+#import tables
 
 class databas:
-    def __init__(self, usr, password, hst, dbname):
-        self.db = mysql.connector.connect(user=usr, passwd=password, host=hst, database=dbname)
-        self.conn = self.db.cursor(buffered=True)
-
+    def __init__(self, usr, password, hst, dbname, tables):
+        self.dbConnection = mysql.connector.connect(user=usr, passwd=password, host=hst)
+        self.dbCursor = self.dbConnection.cursor(buffered=True)
+        self.dbCursor.execute("CREATE DATABASE IF NOT EXISTS " +dbname)
+        self.dbConnection.database = dbname
+        for table in tables:
+            self.createTable(tables[table])
+        
+        #self.db = mysql.dbCursorector.dbCursorect(user=usr, passwd=password, host=hst, database=dbname)
+        #self.dbCursor = self.db.cursor(buffered=True)
+        
     def insertIntoTable(self, table, values):
-        print('INSERT INTO ',table,' VALUES(',values,')')
-        self.conn.execute('INSERT INTO '+table+' VALUES('+values+')')
-        self.db.commit()
+        #print('INSERT INTO ',table,' VALUES(',values,')')
+        self.dbCursor.execute('INSERT INTO ' + table + ' VALUES('+values + ')')
+        self.dbConnection.commit()
+            
+        
 
+        
+    def select(self, fromarg, col = '*', where = "", **kwargs):
+        tbl = []
+        self.dbCursor.execute("SELECT "+col+" FROM "+fromarg+" WHERE " +where, kwargs)
+        for row in self.dbCursor:
+            tbl.append(row)
+        return tbl
+        
     def returnTable(self, table):
         tbl = []
-        self.conn.execute('select * from '+table)
-        for row in conn:
+        self.dbCursor.execute('select * from '+table)
+        for row in dbCursor:
             tbl.append(row)
         return tbl
 
+    def createTable(self, table, **kwargs):
+        #print("CREATE TABLE IF NOT EXISTS " + table %kwargs)
+        self.dbCursor.execute("CREATE TABLE IF NOT EXISTS " + table, kwargs)
+        self.dbConnection.commit()
+
+    def close(self):
+        if not (self.dbCursor.close() or self.dbConnection.close()):
+            print("failed to close")
+            
 
 class labdb:
-
     def __init__(self):
-        self.db = databas('python', 'password', 'localhost', 'labdb')
+        try:
+            file = open("secret.key","x")
+            key = Fernet.generate_key()
+            file.write(key.decode("utf-8"))
+            file.close()
+            self.crypto = Fernet(key)
+        except:
+            file = open("secret.key","r")
+            key = file.read()
+            if not key:
+                file.close()
+                file = open("secret.key","w")
+                key = Fernet.generate_key()
+                file.write(key.decode("utf-8"))
+                file.close()
+                self.crypto = Fernet(key)
+            else:
+                file.close()
+                self.crypto = Fernet(key.encode("utf-8"))
+            
+        self.db = databas('python', 'password', 'localhost', 'labdb', tables.tables)
         self.accountsTable = 'Accounts (UserName, Email, Password, AccessLevel)'
+        self.accountsValues = '(%(UserName)s, %(Email)s, %(Password)s, %(AccessLevel)s)'
+        self.matchUserID = 'UserID = %(UserID)s'
+        self.matchUserName = 'UserName = %(UserName)s'
+        self.matchPassword = 'Password = %(Password)s'
+        self.matchEmail = "Email = %(Email)s"
+
+    def isUserID(self, userid):
+        return bool(self.getUserName(userid))
     
     def hasUserWith(self,username = "", email = ""):
         """
         Return if database either has a match for a given email or username,
         if neither username or email is set beyond default value return false
-        """
-        if username and email:
-            self.db.conn.execute('select * from Accounts where UserName=%s or Email=%s', (username, email))
+        """ 
+        answer = []
+        if  username and email:
+            answer = self.db.select("Accounts", where = self.matchUserName + " or " + self.matchEmail, UserName = username, Email = email)
         elif username:
-            self.db.conn.execute('select * from Accounts where UserName=%s', (username))
+            answer = self.db.select("Accounts", where = self.matchUserName, UserName = username)
         elif email:
-            self.db.conn.execute('select * from Accounts where Email=%s', (email))
+            answer = self.db.select("Accounts", where = self.matchEmail, Email = email)
         else:
             return False
-        return self.db.conn.rowcount > 0
+        return len(answer) > 0
 
-    def req_user(self, user, email, pw):
-        v = '\'' + user + '\','+ '\'' + email + '\','+ '\'' + pw +'\','+ '\'user\''
-        self.db.insertIntoTable(self.accountsTable, v)
+    def regAccount(self, user, email, pw, acclvl):
+        values = "'%s', '%s', '%s', '%s'" % (user, email, pw, acclvl)
+        self.db.insertIntoTable(self.accountsTable, values)
+        
+    def regUser(self, user, email, pw):
+        self.regAccount(user, email, pw, 'user')
+        self.db.createTable(tables.transaction, UserID = self.db.select("Accounts", col = "UserID", where = self.matchUserName, UserName = user)[0][0])
 
+    def regAdmin(self, user, email, pw):
+        self.regAccount(user, email, pw, 'admin')
 
+    def getUserName(self, userid):
+        answer = self.db.select("Accounts", col = "UserName", where= self.matchUserID, UserID = self.crypto.decrypt(userid).decode("utf-8"))
+        if answer:
+            return answer[0][0]
+        else:
+            return ""
+    
     def sql_insert(self, id, name):
-        self.db.conn.execute("INSERT INTO test VALUES(" +id+ ',"' +name+ '")')
-        self.db.db.commit()
+        self.db.dbCursor.execute("INSERT INTO test VALUES(" +id+ ',"' +name+ '")')
+        self.db.dbConnection.commit()
 
     def validateUser(self, username, password):
-        self.db.conn.execute('select * from Accounts where UserName=%s and password=%s', (username, password))
-        for row in self.db.conn:
-            print(row)
-        return self.db.conn.rowcount > 0
+        answer = self.db.select("Accounts", where = self.matchUserName+ " and "+ self.matchPassword , UserName = username, Password = password)
+        if answer:
+            return self.crypto.encrypt(str(answer[0][0]).encode("utf-8"))
+        else:
+            return ""
 
+    def close(self):
+        self.db.close()
+
+
+testing = False
+if __name__ == "__main__" and testing:
+    db = labdb()
+    if True:
+        user = "testuser"
+        email = "testmail@mail.com"
+        pw = "pw"
+        db.regUser(user, email, pw)
+        print(db.hasUserWith(user, email))
+        print(db.hasUserWith(user))
+        print(db.hasUserWith(email = email))
+        userid = db.validateUser(user, pw)
+        print(db.getUserName(userid))
+        db.close()
+    else:
+        print("except")
+        db.close()
+    

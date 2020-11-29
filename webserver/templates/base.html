@@ -68,11 +68,12 @@
 				<div class="inner">
 					<button type="submit" formaction = "/" value = "home">Home</button>
 					{% if user %}
-						<button type="submit" formaction="/user/"+user value = "user">Account</button>
+						<button type="submit" formaction="/account" value = "account">Account</button>
+						<button type="submit" formaction="/logout" value = "logout">Logout</button>
 					{% else %}
 						<button type="submit" formaction="/login" value = "login">Login</button>
+						<button type="submit" formaction="/register" value = "register">Register</button>
 					{% endif %}
-					<button type="submit" formaction="/register" value = "register">Register</button>
 				</div>
 			</div>
 		</form>
