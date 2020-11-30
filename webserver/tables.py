@@ -9,7 +9,7 @@ tables['Accounts'] = (
     'PRIMARY KEY (`UserID`),'
     'UNIQUE KEY `UserName_UNIQUE` (`UserName`),'
     'UNIQUE KEY `E-mail_UNIQUE` (`Email`)'
-    ')ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci')
+    ')ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci')
 
 tables['Products'] = (
     '`Products` ('
@@ -22,6 +22,7 @@ tables['Products'] = (
     'UNIQUE KEY `MAKE_NAME` (`Name`,`Make`)'
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
     )
+
 tables['Transactions'] = (
     '`Transactions` ('
     '`TransactionNumber` int NOT NULL AUTO_INCREMENT,'

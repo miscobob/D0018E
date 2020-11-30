@@ -1,12 +1,15 @@
 from cryptography.fernet import Fernet
 import mysql.connector
-from . import tables
-#import tables
+#from . import tables
+import tables
 
 class databas:
     def __init__(self, usr, password, hst, dbname, tables):
-        self.dbConnection = mysql.connector.connect(user=usr, passwd=password, host=hst)
-        self.dbCursor = self.dbConnection.cursor(buffered=True)
+        self.user = usr
+        self.password = password
+        self.host = hst
+        self.name = dbname
+        self.connect()
         self.dbCursor.execute("CREATE DATABASE IF NOT EXISTS " +dbname)
         self.dbConnection.database = dbname
         for table in tables:
@@ -16,14 +19,14 @@ class databas:
         #self.dbCursor = self.db.cursor(buffered=True)
         
     def insertIntoTable(self, table, values):
+        self.testConnection()
         #print('INSERT INTO ',table,' VALUES(',values,')')
         self.dbCursor.execute('INSERT INTO ' + table + ' VALUES('+values + ')')
         self.dbConnection.commit()
             
         
-
-        
     def select(self, fromarg, col = '*', where = "", **kwargs):
+        self.testConnection()
         tbl = []
         self.dbCursor.execute("SELECT "+col+" FROM "+fromarg+" WHERE " +where, kwargs)
         for row in self.dbCursor:
@@ -31,6 +34,7 @@ class databas:
         return tbl
         
     def returnTable(self, table):
+        self.testConnection()
         tbl = []
         self.dbCursor.execute('select * from '+table)
         for row in dbCursor:
@@ -38,6 +42,8 @@ class databas:
         return tbl
 
     def createTable(self, table, **kwargs):
+        print(table)
+        self.testConnection()
         #print("CREATE TABLE IF NOT EXISTS " + table %kwargs)
         self.dbCursor.execute("CREATE TABLE IF NOT EXISTS " + table, kwargs)
         self.dbConnection.commit()
@@ -45,8 +51,17 @@ class databas:
     def close(self):
         if not (self.dbCursor.close() or self.dbConnection.close()):
             print("failed to close")
-            
 
+    def testConnection(self):
+        if not self.dbConnection.is_connected():
+            self.connect()
+    """
+    Connect to mysql db
+    """
+    def connect(self):
+        self.dbConnection = mysql.connector.connect(user=self.user, passwd=self.password, host=self.host)
+        self.dbCursor = self.dbConnection.cursor(buffered=True)
+        
 class labdb:
     def __init__(self):
         try:
