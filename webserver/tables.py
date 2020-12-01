@@ -42,7 +42,7 @@ transaction = (
     '`Count` int NOT NULL,'
     'KEY `TransactionNumber_idx` (`TransactionNumber`),'
     'KEY `ProductId_idx` (`Item`),'
-    'CONSTRAINT `ProductId` FOREIGN KEY (`Item`) REFERENCES `Products` (`ProductID`),'
-    'CONSTRAINT `TransactionNumber` FOREIGN KEY (`TransactionNumber`) REFERENCES `Transactions` (`TransactionNumber`)'
+    'CONSTRAINT `ProductId%(UserID)s` FOREIGN KEY (`Item`) REFERENCES `Products` (`ProductID`),'
+    'CONSTRAINT `TransactionNumber%(UserID)s` FOREIGN KEY (`TransactionNumber`) REFERENCES `Transactions` (`TransactionNumber`)'
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
     )
