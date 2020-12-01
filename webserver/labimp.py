@@ -1,7 +1,7 @@
 from cryptography.fernet import Fernet
 import mysql.connector
-#from . import tables
-import tables
+from . import tables
+#import tables
 
 class databas:
     def __init__(self, usr, password, hst, dbname, tables):
