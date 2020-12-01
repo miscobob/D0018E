@@ -12,7 +12,7 @@ datab = labimp.labdb()
 @app.route('/')
 def start():
     if(session.get("UserID")):
-        username = datab.getUserName(session["UserID"])
+        username = getUserName()
         if username:
             return render_template('home.html', user = username)
     return render_template('home.html')
@@ -21,7 +21,7 @@ def start():
 @app.route('/login', methods = ["POST","GET"])
 def login():
     if session.get("UserID"):
-        if getUserName(session["UserID"]):
+        if getUserName():
             return redirect("/account")
     if(request.method == "POST"):
         username = str(request.form["username"])

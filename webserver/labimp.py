@@ -61,6 +61,10 @@ class databas:
     def connect(self):
         self.dbConnection = mysql.connector.connect(user=self.user, passwd=self.password, host=self.host)
         self.dbCursor = self.dbConnection.cursor(buffered=True)
+
+    def reconnect(self):
+        self.connect()
+        self.dbConnection.database = self.name
         
 class labdb:
     def __init__(self):
