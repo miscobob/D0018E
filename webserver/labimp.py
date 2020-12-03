@@ -54,7 +54,7 @@ class databas:
 
     def testConnection(self):
         if not self.dbConnection.is_connected():
-            self.connect()
+            self.reconnect()
     """
     Connect to mysql db
     """
