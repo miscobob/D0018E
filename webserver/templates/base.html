@@ -40,6 +40,7 @@
 			background-color: #A8A8A8;
 			height:15;
 		}
+		
 		.body
 		{
 			float: left;
@@ -56,6 +57,8 @@
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
     <link rel="canonical" href=".">
     <title>{% block title %}{% endblock %}</title>
+	{% block jsfiles %}
+	{% endblock %}
   </head>
   <body>
 	<div class="header">
@@ -69,6 +72,7 @@
 					<button type="submit" formaction = "/" value = "home">Home</button>
 					{% if user %}
 						<button type="submit" formaction="/account" value = "account">Account</button>
+						<button type="submit" formaction="/basket" value = "basket">Basket</button>
 						<button type="submit" formaction="/logout" value = "logout">Logout</button>
 					{% else %}
 						<button type="submit" formaction="/login" value = "login">Login</button>
@@ -76,6 +80,7 @@
 					{% endif %}
 				</div>
 			</div>
+			
 		</form>
 	</div>
 	<div class="body">
