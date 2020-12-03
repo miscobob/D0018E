@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import mysql.connector
 import re
 from . import labimp
 #import labimp
+import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
 datab = labimp.labdb()
 
@@ -40,15 +41,6 @@ def logout():
         session.pop("UserID", None)
     return redirect('/login')
 
-@app.route('/sql', methods = ["POST","GET"])
-def sql():
-    if(request.method == "POST"):
-        id = str(request.form["id"])
-        name = str(request.form["name"])
-        datab.sql_insert(id, name)
-    elif(request.method == "GET"):
-        return redirect('/cgi-bin/data.py')
-
 @app.route('/register', methods = ["POST","GET"])
 def register():
     if session.get("UserID"):
@@ -75,8 +67,49 @@ def account():
         username = getUserName()
         if not username: 
             return redirect("/login")
-        return render_template('account.html', user = username)
+        if(request.method == "POST"):
+            return render_template('account.html', user = username, error="password incorrect")
+        else:
+            return render_template('account.html', user = username)
     return redirect("/login")
+
+"""
+Route to shopping basket
+"""
+@app.route('/basket')
+def basket():
+    if session.get("UserID"):
+        username = getUserName()
+    else:
+        redirect("/login")
+    return render_template('basket.html', user = username)
+
+"""
+Route to product page
+"""
+@app.route('/products/<pname>')
+def productPage(pname):
+    return render_template('product.html', pname = pname)
+
+"""
+Return javascript file
+"""
+@app.route('/js/<path:file>')
+def sendjs(file):
+    return send_from_directory('js', file)
+
+"""
+adds a new item to user basket
+"""
+def addItemToBasket(pid):
+    return None
+
+"""
+Should load basket from database into cookies
+"""
+def loadBasket():
+    return None
+
   
 """
 validates username and password, if validated set userid to return userid of session
@@ -85,20 +118,27 @@ def validateUser(username, password):
     userId = datab.validateUser(username, password)
     if(userId):
         session["UserID"] = userId
+        session["DTS"] = datetime.datetime.now().strftime("%y:%m:%d,%H:%M:%S")
         return True
     else:
         return False
+
 """
 Will return username linked to UserID of session, no username is found it will pop the userid from the session
 """
 def getUserName():
-    username = datab.getUserName(session["UserID"])
-    if not username:
+    if not session.get('DTS'):
         session.pop("UserID", None)
+        return ""
+    dts = datetime.datetime.strptime(session['DTS'],"%y:%m:%d,%H:%M:%S")
+    username = ""
+    if datetime.datetime.now() - dts > TTL or not (username := datab.getUserName(session["UserID"])):
+        session.pop("UserID", None)
+        session.pop("DTS", None)
         return ""
     return username
 
-
+TTL = datetime.timedelta(days = 7)
 
 if __name__ == "__main__":
     app.run()
