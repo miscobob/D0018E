@@ -18,6 +18,7 @@ tables['Products'] = (
     '`Make` varchar(45) NOT NULL,'
     '`Price` int NOT NULL,'
     '`In Stock` int NOT NULL,'
+    '`Image` varchar(45) DEFAULT NULL,'
     'PRIMARY KEY (`ProductID`),'
     'UNIQUE KEY `MAKE_NAME` (`Name`,`Make`)'
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
