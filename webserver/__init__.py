@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import mysql.connector
 import re
-from . import labimp
-#import labimp
+#from . import labimp
+import labimp
 import datetime
+import json
 
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
@@ -76,20 +77,20 @@ def account():
 """
 Route to shopping basket
 """
-@app.route('/basket')
+@app.route('/basket', methods = ["POST","GET"])
 def basket():
     if session.get("UserID"):
         username = getUserName()
+        return render_template('basket.html', user = username)
     else:
-        redirect("/login")
-    return render_template('basket.html', user = username)
+        return render_template('basket.html')
 
 """
 Route to product page
 """
-@app.route('/products/<pname>')
-def productPage(pname):
-    return render_template('product.html', pname = pname)
+@app.route('/product/<int:pid>')
+def productPage(pid):
+    return render_template('product.html', pname = pid)
 
 """
 Return javascript file
@@ -97,6 +98,10 @@ Return javascript file
 @app.route('/js/<path:file>')
 def sendjs(file):
     return send_from_directory('js', file)
+
+@app.route('/images/<path:image>')
+def sendImage(image):
+    return send_from_directory('images',image)
 
 """
 adds a new item to user basket
@@ -107,7 +112,17 @@ def addItemToBasket(pid):
 """
 Should load basket from database into cookies
 """
+@app.route("/loadBasket")
 def loadBasket():
+    s = (
+        '{  "products":['
+        '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker", "count":"2" },'
+        '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker", "count":"1"}'
+        '],"dts":"2020-12-05T00:20:51"}'
+        )
+    return s
+    if session.get("UserID"):
+        return jsonobj
     return None
 
   

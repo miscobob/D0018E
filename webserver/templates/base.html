@@ -12,7 +12,7 @@
 			background-color: white;
 		}
 		amp-img {
-			border: 5px solid black;
+			padding:10px;
 		}
 
 		amp-img.grey-placeholder {
@@ -52,7 +52,9 @@
 		{
 			padding-left: 10px;
 		}
-
+	
+		{% block div %}
+		{% endblock %}
     </style>
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
     <link rel="canonical" href=".">
@@ -72,18 +74,17 @@
 					<button type="submit" formaction = "/" value = "home">Home</button>
 					{% if user %}
 						<button type="submit" formaction="/account" value = "account">Account</button>
-						<button type="submit" formaction="/basket" value = "basket">Basket</button>
 						<button type="submit" formaction="/logout" value = "logout">Logout</button>
 					{% else %}
 						<button type="submit" formaction="/login" value = "login">Login</button>
 						<button type="submit" formaction="/register" value = "register">Register</button>
 					{% endif %}
+					<button type="submit" formaction="/basket" value = "basket">Basket</button>
 				</div>
 			</div>
-			
 		</form>
 	</div>
-	<div class="body">
+	<div id= "body" class="body">
 		{% if message %}
 			<p>{{message}}</p>
 		{% endif %}
