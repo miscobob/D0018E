@@ -45,6 +45,14 @@ class databas:
             tbl.append(row)
         return tbl
 
+    def update(self, table, setCol, setValue, where = ""): #, **kwargs):
+        self.testConnection()
+        statement ="UPDATE "+table+" SET "+setCol+"="+setValue+"
+        if where:
+            statement += " WHERE "+where
+        self.dbCursor.execute(statement) #, kwargs)
+
+
     """
     returns all colmns from table
     """
@@ -192,9 +200,9 @@ class labdb:
         else:
             return ""
     
-    def sql_insert(self, id, name):
-        self.db.dbCursor.execute("INSERT INTO test VALUES(" +id+ ',"' +name+ '")')
-        self.db.dbConnection.commit()
+#    def sql_insert(self, id, name):
+#        self.db.dbCursor.execute("INSERT INTO test VALUES(" +id+ ',"' +name+ '")')
+#        self.db.dbConnection.commit()
 
     """
     validates a user log in attempt
@@ -205,6 +213,16 @@ class labdb:
             return self.crypto.encrypt(str(answer[0][0]).encode("utf-8"))
         else:
             return ""
+
+    def addToCart(self, userid, transnr, productid, nr):
+        answer = self.db.select("Transaction%s"%userid, "Count", "TransactionNumber = '%s' and Item = '%s'"%(transnr, productid))
+        if answer:
+            self.db.update("Transaction%s"%userid, "Count", str(answer[0]+nr), "TransactionNumber=%s AND Item=%s"%(transnr, productid))
+            self.dbConnection.commit()
+            return
+        self.db.insertIntoTable("Transaction%s"%userid, "%s, %s, %s"%(transnr, productid, nr))
+        self.dbConnection.commit()
+        return
     """
     Closes connection to db
     """
