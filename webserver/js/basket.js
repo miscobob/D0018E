@@ -67,7 +67,7 @@ function generateHTML(basket)
         row.appendChild(image)
         
         var text = document.createElement("P");
-        text.innerHTML = '<a href ="/product/'+products[i].pid+'">' + products[i].name + "</a> by "+ products[i].make + " in basket "+ products[i].count;
+        text.innerHTML = '<a href ="/products/'+products[i].pid+'">' + products[i].name + "</a> by "+ products[i].make + " in basket "+ products[i].count;
         ///text.style.display = "table-cell";
         text.setAttribute("class","basketItem");
         row.appendChild(text);
