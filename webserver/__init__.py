@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, send_from_directory, safe_join, abort
 import mysql.connector
 import re
-#from . import labimp
-import labimp
+from . import labimp
+#import labimp
 import datetime
 import json
 
@@ -19,6 +19,9 @@ def start():
             return render_template('home.html', user = username)
     return render_template('home.html')
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory("images", "favicon.ico")
 
 @app.route('/login', methods = ["POST","GET"])
 def login():
@@ -86,9 +89,15 @@ def basket():
         return render_template('basket.html')
 
 """
+Route to products page
+"""
+@app.route('/products', methods = ["POST", "GET"])
+def products():
+    return render_template('products.html')
+"""
 Route to product page
 """
-@app.route('/product/<int:pid>')
+@app.route('/products/<int:pid>')
 def productPage(pid):
     return render_template('product.html', pname = pid)
 

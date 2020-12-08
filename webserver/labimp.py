@@ -47,12 +47,15 @@ class databas:
 
     def update(self, table, setCol, setValue, where = ""): #, **kwargs):
         self.testConnection()
-        statement ="UPDATE "+table+" SET "+setCol+"="+setValue+"
+        statement ="UPDATE "+table+" SET "+setCol+"="+setValue
         if where:
             statement += " WHERE "+where
         self.dbCursor.execute(statement) #, kwargs)
 
-
+    def delete(self, table, where):
+        self.testConnection()
+        statement = "DELETE FROM "+table+" WHERE "+where
+        self.dbCursor.execute(statement)
     """
     returns all colmns from table
     """
@@ -217,12 +220,20 @@ class labdb:
     def addToCart(self, userid, transnr, productid, nr):
         answer = self.db.select("Transaction%s"%userid, "Count", "TransactionNumber = '%s' and Item = '%s'"%(transnr, productid))
         if answer:
-            self.db.update("Transaction%s"%userid, "Count", str(answer[0]+nr), "TransactionNumber=%s AND Item=%s"%(transnr, productid))
-            self.dbConnection.commit()
-            return
+            x = answer[0][0]+nr
+            if x >= 0:
+                self.db.update("Transaction%s"%userid, "Count", str(answer[0][0]+nr), "TransactionNumber=%s AND Item=%s"%(transnr, productid))
+                self.dbConnection.commit()
+                return 0
+            elif x == 0:
+                self.db.delete("Transaction%s"%userid, "TransactionNumber=%s AND Item=%s"%(transnr, productid))
+                self.dbConnection.commit()
+                return 0
+            else:
+                return 1
         self.db.insertIntoTable("Transaction%s"%userid, "%s, %s, %s"%(transnr, productid, nr))
         self.dbConnection.commit()
-        return
+        return 0
     """
     Closes connection to db
     """
