@@ -24,8 +24,9 @@ async function loadFromServer()
     xhttp.send();
 }
 
-function generateHTML(products)
+function generateHTML(productlist)
 {
+	var products = productlist.products;
     var table = document.getElementById("productsArea");
     var i;
     for(i in products)
