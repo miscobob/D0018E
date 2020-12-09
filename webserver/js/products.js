@@ -43,7 +43,7 @@ function generateHTML(productlist)
         row.appendChild(image)
 
         var text = document.createElement("P");
-        text.innerHTML = '<a href ="/products/'+products[i].pid+'">' + products[i].name + "</a> by "+ products>
+        text.innerHTML = '<a href ="/products/'+products[i].pid+'">' + products[i].name + "</a> by "+ products[i].make;
         text.setAttribute("class","item");
         row.appendChild(text);
 
