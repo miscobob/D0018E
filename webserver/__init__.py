@@ -145,7 +145,7 @@ def loadProducts():
     return None
 
 #@app.route("/addProduct")
-def addProduct():
+#def addProduct():
 #kör makeProduct.js
 #lägg till produkt i databas
 
