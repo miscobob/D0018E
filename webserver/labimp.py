@@ -220,7 +220,7 @@ class labdb:
 
     def addToCart(self, userid, productid, nr):
         userid = self.crypto.decrypt(userid).decode("utf-8")
-        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = "Basket")
+        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET)
         if not transaction: # check if new basket needed
             values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET)
             self.db.insertIntoTable(tables.transactionsInsert, values)
