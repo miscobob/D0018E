@@ -5,18 +5,16 @@ from . import labimp
 #import labimp
 import datetime
 import json
+import functools
 
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
 datab = labimp.labdb()
 
-
 @app.route('/')
 def start():
     if(session.get("UserID")):
-        username = getUserName()
-        if username:
-            return render_template('home.html', user = username)
+        return render_template('home.html', user = True)
     return render_template('home.html')
 
 @app.route('/favicon.ico')
@@ -83,10 +81,33 @@ Route to shopping basket
 @app.route('/basket', methods = ["POST","GET"])
 def basket():
     if session.get("UserID"):
-        username = getUserName()
-        return render_template('basket.html', user = username)
+        return render_template('basket.html', user = true)
     else:
         return render_template('basket.html')
+
+@app.route('/updateBasket', methods = ["POST"])
+def updateBasket():
+    if request.method == "POST":
+        if session.get("UserID"):
+            username = getUserName()
+            if username:
+                pid = request.form["pid"]
+                mod = request.form["mod"]
+                datab.addToCart(userid, pid, mod)
+                return getProdJsonObj(session["UserID"], pid, mod)
+        else:
+            return ""
+    else:
+        return ""
+
+"""
+adds a new item to user basket
+"""
+@app.route('/addItem', methods = ["POST"])
+def addItemToBasket(pid):
+    if session.get("UserID"):
+        
+    return None
 
 """
 Route to products page
@@ -99,6 +120,8 @@ Route to product page
 """
 @app.route('/products/<int:pid>')
 def productPage(pid):
+    if session.get("UserID"):
+        return render_template('products.html', user=True)
     return render_template('product.html', pname = pid)
 
 """
@@ -112,11 +135,7 @@ def sendjs(file):
 def sendImage(image):
     return send_from_directory('images',image)
 
-"""
-adds a new item to user basket
-"""
-def addItemToBasket(pid):
-    return None
+
 
 """
 Should load basket from database into cookies
@@ -161,6 +180,11 @@ def getUserName():
         session.pop("DTS", None)
         return ""
     return username
+
+def getProdJsonObj(userid, pid, mod):
+    
+
+
 
 TTL = datetime.timedelta(days = 7)
 
