@@ -1,3 +1,4 @@
+from enum import Enum
 tables = {}
 tables['Accounts'] = (
     '`Accounts` ('
@@ -47,3 +48,12 @@ transaction = (
     'CONSTRAINT `TransactionNumber%(UserID)s` FOREIGN KEY (`TransactionNumber`) REFERENCES `Transactions` (`TransactionNumber`)'
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
     )
+
+
+
+accountsInsert = 'Accounts (UserName, Email, Password, AccessLevel)'
+transactionsInsert = 'Transactions (UserID, Status)'
+class TransactionState(Enum):
+    DONE = "completed"
+    WAIT = "inprogress"
+    BASKET = "inbasket"
