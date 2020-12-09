@@ -239,7 +239,7 @@ class labdb:
                     return 0
                 else:
                     return 1
-        if nr >= 1
+        if nr >= 1:
             self.db.insertIntoTable("Transaction%s"%userid, "'%s', '%s', '%s'"%(transnr, productid, nr))
             return 0
         return 1
