@@ -47,33 +47,18 @@ function generateHTML(productlist)
         text.setAttribute("class","item");
         row.appendChild(text);
 
-        /*var increaseCount = document.createElement("BUTTON");
-        increaseCount.setAttribute("type","button");
-        increaseCount.setAttribute("onclick","increaseCount("+products[i].pid+")");
-        increaseCount.innerHTML = "+"
-        increaseCount.setAttribute("class","fixedsizedItem");
-        row.appendChild(increaseCount);*/
+        var addToCartButton = document.createElement("BUTTON");
+        addToCartButton.setAttribute("type","button");
+        addToCartButton.setAttribute("onclick","addToCart("+products[i].pid+")");
+        addToCartButton.innerHTML = "Add to cart"
+        addToCartButton.setAttribute("class","fixedsizedItem");
+        row.appendChild(addToCartButton);
 
         table.appendChild(row);
     }
 }
 
-async function addItem(pid)
-{
-
-}
-
-async function reduceCount(pid)
-{
-
-}
-
-async function increaseCount(pid)
-{
-
-}
-
-async function removeItem(pid)
+async function addToCart(pid)
 {
 
 }
