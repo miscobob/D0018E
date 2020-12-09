@@ -46,12 +46,12 @@ function generateHTML(products)
         text.setAttribute("class","item");
         row.appendChild(text);
 
-        var increaseCount = document.createElement("BUTTON");
+        /*var increaseCount = document.createElement("BUTTON");
         increaseCount.setAttribute("type","button");
         increaseCount.setAttribute("onclick","increaseCount("+products[i].pid+")");
         increaseCount.innerHTML = "+"
         increaseCount.setAttribute("class","fixedsizedItem");
-        row.appendChild(increaseCount);
+        row.appendChild(increaseCount);*/
 
         table.appendChild(row);
     }

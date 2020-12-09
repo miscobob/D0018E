@@ -136,12 +136,9 @@ def loadBasket():
 
 @app.route("/loadProducts")
 def loadProducts():
-    s = (
-        '{  "products":['
-        '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker", "count":"2" },'
-        '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker", "count":"1"}'
-        '],"dts":"2020-12-05T00:20:51"}'
-        )
+    s = ('{  "products":['
+         '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
+         '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
     return s
     if session.get("UserID"):
         return jsonobj

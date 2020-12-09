@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block div %}
-        #basket
+        #products
         {
             display:table;
 
         }
-        .basketRow
+        .product
         {
             display:table-row;
             text-align:center;
             height:75px;
             padding: 10px;
         }
-        .basketItem
+        .item
         {
             padding-left: 10px;
             padding-right: 10px;
@@ -29,7 +29,7 @@
 {% block jsfiles %}
 <script src="/js/products.js"></script>
 <script>
-window.onunload= loadBasket();
+window.onunload= loadProducts();
 </script>
 {% endblock %}
 {% block header %}
