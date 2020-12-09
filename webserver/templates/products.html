@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block div %}
+        #products
+        {
+            display:table;
+
+        }
+        .product
+        {
+            display:table-row;
+            text-align:center;
+            height:75px;
+            padding: 10px;
+        }
+        .item
+        {
+            padding-left: 10px;
+            padding-right: 10px;
+            display: table-cell;
+        }
+        .fixedsizedItem
+        {
+            .item;
+            height:50px;
+            width:50px;
+        }
+{% endblock %}
+{% block title %}Products{% endblock %}
+{% block jsfiles %}
+<script src="/js/products.js"></script>
+<script>
+window.onunload= loadProducts();
+</script>
+{% endblock %}
+{% block header %}
+<h2>Products</h2>
+{% endblock %}
+{% block content %}
+<p>Items shown here are available for purchase<p>
+{% endblock %}
+{% block form %}
+<div id = "productsArea" class="products">
+</div>
+{% endblock %}

@@ -153,7 +153,22 @@ def loadBasket():
         return jsonobj
     return None
 
-  
+@app.route("/loadProducts")
+def loadProducts():
+    s = ('{  "products":['
+         '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
+         '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
+    return s
+    if session.get("UserID"):
+        return jsonobj
+    return None
+
+#@app.route("/addProduct")
+#def addProduct():
+#kör makeProduct.js
+#lägg till produkt i databas
+
+
 """
 validates username and password, if validated set userid to return userid of session
 """
