@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block div %}
+        #basket
+        {
+            display:table;
+
+        }
+        .basketRow
+        {
+            display:table-row;
+            text-align:center;
+            height:75px;
+            padding: 10px;
+        }
+        .basketItem
+        {
+            padding-left: 10px;
+            padding-right: 10px;
+            display: table-cell;
+        }
+        .fixedsizedItem
+        {
+            .basketItem;
+            height:50px;
+            width:50px;
+        }
+{% endblock %}
+{% block title %}Products{% endblock %}
+{% block jsfiles %}
+<script src="/js/products.js"></script>
+<script>
+window.onunload= loadBasket();
+</script>
+{% endblock %}
+{% block header %}
+<h2>Products</h2>
+{% endblock %}
+{% block content %}
+<p>Items shown here are available for purchase<p>
+{% endblock %}
+{% block form %}
+<div id = "productsArea" class="products">
+</div>
+{% endblock %}
