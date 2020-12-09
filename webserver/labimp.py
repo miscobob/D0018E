@@ -108,6 +108,9 @@ class databas:
         self.connect()
         self.dbConnection.database = self.name
 
+    def commit(self):
+        self.dbConnection.commit()
+
     """
     Start a transaction
     """
@@ -137,26 +140,23 @@ class labdb:
                 self.crypto = Fernet(key.encode("utf-8"))
             
         self.db = databas('python', 'password', 'localhost', 'labdb', tables.tables)
-        self.accountsTable = 'Accounts (UserName, Email, Password, AccessLevel)'
-        self.accountsValues = '(%(UserName)s, %(Email)s, %(Password)s, %(AccessLevel)s)'
         self.matchUserID = 'UserID = %(UserID)s'
         self.matchUserName = 'UserName = %(UserName)s'
         self.matchPassword = 'Password = %(Password)s'
         self.matchEmail = "Email = %(Email)s"
+        self.matchStatus = "Status = %(status)s"
+        self.matchPid = "ProductID = %(PID)s"
     """
     Checks if it can find a username for given userid
     """
     def isUserID(self, userid):
         return bool(self.getUserName(userid))
+
     """
     checks if there exist someone with given username or given email,
     returns false if neither is given.
     """
-    def hasUserWith(self,username = "", email = ""):
-        """
-        Return if database either has a match for a given email or username,
-        if neither username or email is set beyond default value return false
-        """ 
+    def hasUserWith(self,username = "", email = ""): 
         answer = []
         if  username and email:
             answer = self.db.select("Accounts", where = self.matchUserName + " or " + self.matchEmail, UserName = username, Email = email)
@@ -167,12 +167,14 @@ class labdb:
         else:
             return False
         return len(answer) > 0
+
     """
     Registers a account as user with given email and given password with a given accvlvl
     """
     def regAccount(self, user, email, pw, acclvl):
         values = "'%s', '%s', '%s', '%s'" % (user, email, pw, acclvl)
-        self.db.insertIntoTable(self.accountsTable, values)
+        self.db.insertIntoTable(tables.accountsInsert, values)
+
     """
     Registers a Website-user as user with given email and given password
     """
@@ -192,6 +194,9 @@ class labdb:
     def regAdmin(self, user, email, pw):
         self.regAccount(user, email, pw, 'admin')
 
+    def getProduct(self, pid):
+        answer = self.db.select("Products", where=self.matchPid, PID = pid)
+        return answer
 
     """
     returns username with given userid if not any result return empty string
@@ -203,10 +208,6 @@ class labdb:
         else:
             return ""
     
-#    def sql_insert(self, id, name):
-#        self.db.dbCursor.execute("INSERT INTO test VALUES(" +id+ ',"' +name+ '")')
-#        self.db.dbConnection.commit()
-
     """
     validates a user log in attempt
     """
@@ -217,23 +218,31 @@ class labdb:
         else:
             return ""
 
-    def addToCart(self, userid, transnr, productid, nr):
-        answer = self.db.select("Transaction%s"%userid, "Count", "TransactionNumber = '%s' and Item = '%s'"%(transnr, productid))
-        if answer:
-            x = answer[0][0]+nr
-            if x >= 0:
-                self.db.update("Transaction%s"%userid, "Count", str(answer[0][0]+nr), "TransactionNumber=%s AND Item=%s"%(transnr, productid))
-                self.dbConnection.commit()
-                return 0
-            elif x == 0:
-                self.db.delete("Transaction%s"%userid, "TransactionNumber=%s AND Item=%s"%(transnr, productid))
-                self.dbConnection.commit()
-                return 0
-            else:
-                return 1
-        self.db.insertIntoTable("Transaction%s"%userid, "%s, %s, %s"%(transnr, productid, nr))
-        self.dbConnection.commit()
-        return 0
+    def addToCart(self, userid, productid, nr):
+        userid = self.crypto.decrypt(userid).decode("utf-8")
+        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = "Basket")
+        if not transaction: # check if new basket needed
+            values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET)
+            self.db.insertIntoTable(tables.transactionsInsert, values)
+        else:
+            transnr = transaction[0][0]
+            answer = self.db.select("Transaction%s"%userid, "Count", "TransactionNumber = '%s' and Item = '%s'"%(transnr, productid))
+            if answer:
+                count = answer[0][0]+nr
+                if count >= 0:
+                    self.db.update("Transaction%s"%userid, "Count", str(count), "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
+                    self.db.commit()
+                    return 0
+                elif count == 0:
+                    self.db.delete("Transaction%s"%userid, "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
+                    self.db.commit()
+                    return 0
+                else:
+                    return 1
+        if nr >= 1
+            self.db.insertIntoTable("Transaction%s"%userid, "'%s', '%s', '%s'"%(transnr, productid, nr))
+            return 0
+        return 1
     """
     Closes connection to db
     """
