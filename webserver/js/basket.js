@@ -10,7 +10,7 @@ async function loadBasket()
     }
     else
     {
-        var basket = JSON.parse(cache);
+        var basket = JSON.parse(JSON.stringify(cache));
         var dts = Date.parse(basket.dts);
         if(Date.now()-dts>TTL)
         {
@@ -111,11 +111,14 @@ async function increaseCount(pid)
             }
         }
     }
-    else{
+//    else{
         var basket = {}
-        basket.products = {}
+        basket.products = []
+  //  }
+    if(basket != null)
+    {
+        requestJSON(basket, pid, 1);
     }
-    requestJSON(basket, pid, 1);
 }
 
 async function decreaseCount(pid)
@@ -166,7 +169,7 @@ function requestJSON(basket, pid, mod)
             }
             else
             {
-                var jsobj = JSON.parse(response);
+                var jsobj = JSON.parse(JSON.stringify(response));
                 basket.products.push(jsobj);
                 var cachename = "basket";
                 var cache = localStorage.setItem(cachename, basket);
