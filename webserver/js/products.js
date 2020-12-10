@@ -1,7 +1,6 @@
 async function loadProducts()
 {
         loadFromServer();
-        generateHTML(basket);
 }
 
 async function loadFromServer()

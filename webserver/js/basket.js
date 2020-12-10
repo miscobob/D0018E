@@ -96,7 +96,7 @@ async function increaseCount(pid)
 {
     var cachename = "basket";
     var cache = localStorage.getItem(cachename);
-    if(cache != "")
+    if(cache != null)
     {
         var basket = JSON.parse(cache);
         var products = basket.products;
@@ -115,7 +115,7 @@ async function increaseCount(pid)
         var basket = {}
         basket.products = {}
     }
-    requestJSON(basket, pid);
+    requestJSON(basket, pid, 1);
 }
 
 async function decreaseCount(pid)
@@ -149,15 +149,18 @@ async function decreaseCount(pid)
 
 
 
-function requestJSON(basket, pid)
+function requestJSON(basket, pid, mod)
 {
-    var xhttp = XMLHttpRequest();
+    var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange =  function()
     {
         if(this.readyState == 4 && this.status == 200)
         {
             var response = this.responseText;
-            if(response != "")
+            var e = document.createElement("P");
+            e.innerHTML = response.toString();
+            document.getElementById("body").appendChild(e);
+            if(response == "" || response == null)
             {
                 alert("You tried to add a non existing product!");
             }
@@ -170,15 +173,15 @@ function requestJSON(basket, pid)
             }
         }
     }
-    xhttp.open("POST", "/addProduct", true);
-    xhttp.setRequestHeader('content-type','application/x-www-form-urlencoded');
-    xhttp.send("pid=" + pid);
+    xhttp.open("POST", "/addProductToBasket", true);
+    xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
+    xhttp.send(JSON.stringify({"pid":pid, "mod":mod}));
 }
 
 function updateServer(pid, mod)
 {
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "/updateBasket", true);
-    xhttp.setRequestHeader('content-type','application/x-www-form-urlencoded');
-    xhttp.send("pid=" + pid + "&mod="+mod);
+    xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
+    xhttp.send(JSON.stringify({"pid":pid, "mod":mod}));
 }
