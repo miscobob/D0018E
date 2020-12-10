@@ -37,7 +37,9 @@ async function loadFromServer()
             if(response != "")
             {
                 var basket = JSON.parse(response);
-                localStorage.setItem(cachename,response);
+                var date = new Date();
+                basket.dts = date.toISOString();
+                localStorage.setItem(cachename, JSON.stringify(basket));
                 generateHTML(basket);
             }
             
@@ -52,6 +54,7 @@ function generateHTML(basket)
     var products = basket.products;
     var table = document.getElementById("basketArea");
     var i;
+    console.log(products);
     for(i in products)
     {
         var row = document.createElement("DIV");
@@ -98,7 +101,7 @@ async function increaseCount(pid)
     var cache = localStorage.getItem(cachename);
     if(cache != null)
     {
-        var basket = JSON.parse(JSON.stringify(cache));
+        var basket = JSON.parse(cache);
         var products = basket.products;
         var i;
         for( i in products)
@@ -111,14 +114,14 @@ async function increaseCount(pid)
             }
         }
     }
-//    else{
-        var basket = {}
-        basket.products = []
-  //  }
-    if(basket != null)
-    {
-        requestJSON(basket, pid, 1);
-    }
+    var basket = {};
+    var products = [];
+    var date = new Date();
+    basket.products = products;
+    basket.dts = date.toISOString();
+    ///console.log(basket)
+    requestJSON(basket, pid, 1);
+
 }
 
 async function decreaseCount(pid)
@@ -138,11 +141,12 @@ async function decreaseCount(pid)
                 if (products[i].count == 0)
                 {
                     if (i == 0)
-                        products.splice(0,1)
+                        products.splice(0,1);
                     else
-                        products.splice(i,i)
+                        products.splice(i,i);
                 }
                 updateServer(pid, -1);
+                localStorage.setItem(cachename, JSON.stringify(basket));
                 return;
             }
         }
@@ -155,6 +159,7 @@ async function decreaseCount(pid)
 function requestJSON(basket, pid, mod)
 {
     var xhttp = new XMLHttpRequest();
+    //console.log(basket)
     xhttp.onreadystatechange =  function()
     {
         if(this.readyState == 4 && this.status == 200)
@@ -169,10 +174,11 @@ function requestJSON(basket, pid, mod)
             }
             else
             {
-                var jsobj = JSON.parse(JSON.stringify(response));
+                var jsobj = JSON.parse(response.toString());
                 basket.products.push(jsobj);
                 var cachename = "basket";
-                var cache = localStorage.setItem(cachename, basket);
+                console.log(basket)
+                var cache = localStorage.setItem(cachename, JSON.stringify(basket));
             }
         }
     }
