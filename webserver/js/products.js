@@ -60,5 +60,5 @@ function generateHTML(productlist)
 
 async function addToCart(pid)
 {
-
+    increaseCount(pid)
 }
