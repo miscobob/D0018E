@@ -91,24 +91,39 @@ def updateBasket():
         if session.get("UserID"):
             username = getUserName()
             if username:
-                pid = request.form["pid"]
-                mod = request.form["mod"]
-                if not datab.addToCart(userid, pid, mod):
-                    return getBasketItemAsJsonString(session["UserID"], pid, mod)
-                return ""
+                obj = request.get_json()
+                if obj.get("pid") and obj.get("mod"):
+                    pid = obj["pid"]
+                    mod = obj["mod"]
+                    if not datab.addToCart(session["UserID"], pid, mod):
+                        return "ok"
+                    return "bad"
         else:
-            return ""
+            return "bad"
     else:
-        return ""
+        return "bad"
 
 """
 adds a new item to user basket
 """
-@app.route('/addProduct', methods = ["POST"])
-def addProduct():
+@app.route('/addProductToBasket', methods = ["POST"])
+def addProductToBasket():
     if session.get("UserID"):
-        return ""
-    return ""
+        username = getUserName()
+        if username:
+            obj = request.get_json()
+            if obj.get("pid") and obj.get("mod"):
+                pid = obj["pid"]
+                mod = obj["mod"]
+                if not datab.addToCart(session["UserID"], pid, mod):
+                    print("Response here")
+                    return getBasketItemAsJsonString(session["UserID"], pid, mod)
+            return "{}"
+        else:
+            print("Response tere")
+            return "{}"
+    print("Response dere")
+    return "{}"
 
 @app.route('/incrementProduct', methods = ["POST"])
 def incrementProduct():
