@@ -1,7 +1,7 @@
 from cryptography.fernet import Fernet
 import mysql.connector
-#from . import tables
-import tables
+from . import tables
+#import tables
 
 class databas:
     def __init__(self, usr, password, hst, dbname, tables):
@@ -151,6 +151,10 @@ class labdb:
         self.matchEmail = "Email = %(Email)s"
         self.matchStatus = "Status = %(status)s"
         self.matchPid = "ProductID = %(PID)s"
+        self.matchItem = "Item = %(Item)s"
+        self.matchTransaction = "TransactionNumber = %(TransactionNumber)s"
+        self.useridCrypt = lambda userid: self.crypto.encrypt(str(userid).encode("utf-8"))
+        self.useridDecrypt = lambda userid: self.crypto.decrypt(userid).decode("utf-8") 
     """
     Checks if it can find a username for given userid
     """
@@ -201,37 +205,44 @@ class labdb:
 
     def getProduct(self, pid):
         answer = self.db.select("Products", where=self.matchPid, PID = pid)
-        return answer
+        return answer[0]
 
     """
     returns username with given userid if not any result return empty string
     """
     def getUserName(self, userid):
-        answer = self.db.select("Accounts", col = "UserName", where= self.matchUserID, UserID = self.crypto.decrypt(userid).decode("utf-8"))
+        userid = self.useridDecrypt(userid)
+        answer = self.db.select("Accounts", col = "UserName", where= self.matchUserID, UserID = userid)
         if answer:
             return answer[0][0]
         else:
             return ""
     
-    """
-    validates a user log in attempt
-    """
+    
     def validateUser(self, username, password):
-        answer = self.db.select("Accounts", where = self.matchUserName+ " and "+ self.matchPassword , UserName = username, Password = password)
+        """
+        validates a user log in attempt
+        """
+        answer = self.db.select("Accounts", col = "UserID", where = self.matchUserName+ " and "+ self.matchPassword , UserName = username, Password = password)
         if answer:
-            return self.crypto.encrypt(str(answer[0][0]).encode("utf-8"))
+            return self.useridCrypt(answer[0][0])
         else:
             return ""
 
     def addToCart(self, userid, productid, nr):
+        """
+        Adds a product to a new basket transaction or to existing basket
+        """
         userid = self.crypto.decrypt(userid).decode("utf-8")
         transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET.value)
         if not transaction: # check if new basket needed
-            values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET)
+            values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET.value)
             self.db.insertIntoTable(tables.transactionsInsert, values)
+            transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET.value)
+            transnr = transaction[0][0]
         else:
             transnr = transaction[0][0]
-            answer = self.db.select("Transaction%s"%userid, "Count", "TransactionNumber = '%s' and Item = '%s'"%(transnr, productid))
+            answer = self.db.select("Transaction%s"%userid, where = self.matchTransaction + " AND "+ self.matchItem, TransactionNumber =  transnr, Item = productid)
             if answer:
                 count = answer[0][0]+nr
                 if count > 0:
@@ -249,13 +260,45 @@ class labdb:
             return 0
         return 1
     
-    def getProductCount(self, userid, pid):
+    def getBasketCount(self, userid, pid = 0):
+        """
+        Returns all products in basket or a given one
+        return list if all otherwise return tuple
+        col in order:
+        production Id, image path, product name, name of product maker, amount in basket, price of product
+        """
+        userid = self.useridDecrypt(userid)
         joinTables = ["Products t2", "Transactions t3"]
-        col = "Item, Image, Name, Make, Count"
+        col = "Item, Image, Name, Make, Count, Price"
         conditions = ["t1.Item = t2.ProductID", "t1.TransactionNumber=t3.TransactionNumber"]
-        where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus
-        answer = self.db.select("Transaction%s"%userid +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value)
-        return answer
+        if pid:
+            where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus + " and " +"t1."+self.matchItem
+            answer = self.db.select("Transaction%s"%userid +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value, Item = pid)
+            if answer:
+                return answer[0]
+            return ""
+        else:
+            where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus
+            answer = self.db.select("Transaction%s"%userid +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value)
+            return answer
+
+    def getBasket(self, userid):
+        return self.getBasketCount(userid)
+
+    def addNewProduct(self, name, make, price, stock = 0, imagepath = "") :
+        if imagepath:
+            values = "'%s', '%s', '%s', '%s', '%s'" % (name, make, price, stock, imagepath)
+            self.db.insertIntoTable(tables.productsInsertImage, values)
+        else:
+            values = "'%s', '%s', '%s', '%s'" % (name, make, price, stock)
+            self.db.insertIntoTable(tables.productsInsert, values)
+
+    def resupply(self, pid, stock):
+        return True
+
+    def addImagePath(self, pid, imagepath):
+        return True
+
 
     """
     Closes connection to db
@@ -272,14 +315,16 @@ if __name__ == "__main__" and testing:
         email = "testmail@mail.com"
         pw = "pw"
         #db.regUser(user, email, pw)
+        #db.addNewProduct("cykel","disney",999)
         print(db.hasUserWith(user, email))
         print(db.hasUserWith(user))
         print(db.hasUserWith(email = email))
         userid = db.validateUser(user, pw)
         print(db.getUserName(userid))
-        print(db.getProductCount(1,1))
-        print(db.addToCart(userid, 1, 1))
-        print(db.getProductCount(1,1))
+        #print(db.addToCart(userid, 1, 1))
+        print(db.addToCart(userid, 2, 1))
+        print(db.getBasket(userid))
+        print(db.getProduct(2))
         db.close()
     else:
         print("except")
