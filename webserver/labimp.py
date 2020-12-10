@@ -1,7 +1,7 @@
 from cryptography.fernet import Fernet
 import mysql.connector
-from . import tables
-#import tables
+#from . import tables
+import tables
 
 class databas:
     def __init__(self, usr, password, hst, dbname, tables):
@@ -34,12 +34,16 @@ class databas:
     Where string as element in kwargs and key to that element is the tag for where
     that string should be placed
     """
-    def select(self, tables, col = '*', where = "", **kwargs):
+    def select(self, table,  col = '*',joinTables = [], conditions = [], where = "" , **kwargs):
         self.testConnection()
         tbl = []
-        statement ="SELECT "+col+" FROM "+tables
+        statement ="SELECT "+col+" FROM "+table
+        if(len(joinTables) == len(conditions)):
+            for i in range(0, len(joinTables)):
+                statement += " INNER JOIN " +joinTables[i] + " ON " + conditions[i]
         if where:
-            statement+=" WHERE "+ where
+            statement+= " WHERE "+ where
+        #print(statement%kwargs)
         self.dbCursor.execute(statement, kwargs)
         for row in self.dbCursor:
             tbl.append(row)
@@ -55,6 +59,7 @@ class databas:
     def delete(self, table, where):
         self.testConnection()
         statement = "DELETE FROM "+table+" WHERE "+where
+        print(statement)
         self.dbCursor.execute(statement)
     """
     returns all colmns from table
@@ -220,7 +225,7 @@ class labdb:
 
     def addToCart(self, userid, productid, nr):
         userid = self.crypto.decrypt(userid).decode("utf-8")
-        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET)
+        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET.value)
         if not transaction: # check if new basket needed
             values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET)
             self.db.insertIntoTable(tables.transactionsInsert, values)
@@ -229,7 +234,7 @@ class labdb:
             answer = self.db.select("Transaction%s"%userid, "Count", "TransactionNumber = '%s' and Item = '%s'"%(transnr, productid))
             if answer:
                 count = answer[0][0]+nr
-                if count >= 0:
+                if count > 0:
                     self.db.update("Transaction%s"%userid, "Count", str(count), "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
                     self.db.commit()
                     return 0
@@ -243,6 +248,15 @@ class labdb:
             self.db.insertIntoTable("Transaction%s"%userid, "'%s', '%s', '%s'"%(transnr, productid, nr))
             return 0
         return 1
+    
+    def getProductCount(self, userid, pid):
+        joinTables = ["Products t2", "Transactions t3"]
+        col = "Item, Image, Name, Make, Count"
+        conditions = ["t1.Item = t2.ProductID", "t1.TransactionNumber=t3.TransactionNumber"]
+        where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus
+        answer = self.db.select("Transaction%s"%userid +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value)
+        return answer
+
     """
     Closes connection to db
     """
@@ -257,12 +271,15 @@ if __name__ == "__main__" and testing:
         user = "testuser"
         email = "testmail@mail.com"
         pw = "pw"
-        db.regUser(user, email, pw)
+        #db.regUser(user, email, pw)
         print(db.hasUserWith(user, email))
         print(db.hasUserWith(user))
         print(db.hasUserWith(email = email))
         userid = db.validateUser(user, pw)
         print(db.getUserName(userid))
+        print(db.getProductCount(1,1))
+        print(db.addToCart(userid, 1, 1))
+        print(db.getProductCount(1,1))
         db.close()
     else:
         print("except")

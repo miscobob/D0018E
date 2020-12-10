@@ -82,7 +82,7 @@ function generateHTML(basket)
 
         var reduceCount = document.createElement("BUTTON");
         reduceCount.setAttribute("type","button");
-        reduceCount.setAttribute("onclick","reduceCount("+products[i].pid+")");
+        reduceCount.setAttribute("onclick","decreaseCount("+products[i].pid+")");
         reduceCount.innerHTML = "-"
         ///reduceCount.style.display = "table-cell";
         reduceCount.setAttribute("class","fixedsizedItem");
@@ -91,22 +91,94 @@ function generateHTML(basket)
     }
 }
 
-async function addItem(pid)
-{
-
-}
-
-async function reduceCount(pid)
-{
-
-}
 
 async function increaseCount(pid)
 {
-
+    var cachename = "basket";
+    var cache = localStorage.getItem(cachename);
+    if(cache != "")
+    {
+        var basket = JSON.parse(cache);
+        var products = basket.products;
+        var i;
+        for( i in products)
+        {
+            if(products[i].pid == pid)
+            {
+                products[i].count +=1;
+                updateServer(pid, 1)
+                return;
+            }
+        }
+    }
+    else{
+        var basket = {}
+        basket.products = {}
+    }
+    requestJSON(basket, pid);
 }
 
-async function removeItem(pid)
+async function decreaseCount(pid)
 {
+    var cachename = "basket";
+    var cache = localStorage.getItem(cachename);
+    if(cache != "")
+    {
+        var basket = JSON.parse(cache);
+        var products = basket.products;
+        var i;
+        for( i in products)
+        {
+            if(products[i].pid == pid)
+            {
+                products[i].count -=1;
+                if (products[i].count == 0)
+                {
+                    if (i == 0)
+                        products.splice(0,1)
+                    else
+                        products.splice(i,i)
+                }
+                updateServer(pid, -1);
+                return;
+            }
+        }
+    }
+    alert("Product not in basket");
+}
 
+
+
+function requestJSON(basket, pid)
+{
+    var xhttp = XMLHttpRequest();
+    xhttp.onreadystatechange =  function()
+    {
+        if(this.readyState == 4 && this.status == 200)
+        {
+            var response = this.responseText;
+            if(response != "")
+            {
+                alert("You tried to add a non existing product!");
+            }
+            else
+            {
+                var jsobj = JSON.parse(response);
+                basket.products.push(jsobj);
+                var cachename = "basket";
+                var cache = localStorage.setItem(cachename, basket);
+            }
+        }
+    }
+    xhttp.open("POST", "/addProduct", true);
+    xhttp.setRequestHeader('content-type','application/x-www-form-urlencoded');
+    xhttp.send("pid=" + pid);
+}
+
+function updateServer(pid, mod)
+{
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "/updateBasket", true);
+    xhttp.setRequestHeader('content-type','application/x-www-form-urlencoded');
+    xhttp.send("pid=" + pid + "&mod="+mod);
 }
