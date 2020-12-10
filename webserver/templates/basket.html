@@ -29,7 +29,9 @@
 {% block jsfiles %}
 <script src="/js/basket.js"></script>
 <script>
-window.onunload= loadBasket();
+window.addEventListener("load", function(){
+    loadBasket();
+});
 </script>
 {% endblock %}
 {% block header %}

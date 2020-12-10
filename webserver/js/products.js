@@ -13,8 +13,8 @@ async function loadFromServer()
             var response = this.responseText;
             if(response != "")
             {
-                var basket = JSON.parse(response);
-                generateHTML(basket);
+                var products = JSON.parse(response);
+                generateHTML(products);
             }
 
         }
