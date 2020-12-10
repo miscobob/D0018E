@@ -93,8 +93,9 @@ def updateBasket():
             if username:
                 pid = request.form["pid"]
                 mod = request.form["mod"]
-                datab.addToCart(userid, pid, mod)
-                return getProdJsonObj(session["UserID"], pid, mod)
+                if not datab.addToCart(userid, pid, mod):
+                    return getBasketItemAsJsonString(session["UserID"], pid, mod)
+                return ""
         else:
             return ""
     else:
@@ -103,12 +104,17 @@ def updateBasket():
 """
 adds a new item to user basket
 """
-@app.route('/addItem', methods = ["POST"])
-def addItemToBasket(pid):
+@app.route('/addProduct', methods = ["POST"])
+def addProduct():
     if session.get("UserID"):
-        
-    return None
+        return ""
+    return ""
 
+@app.route('/incrementProduct', methods = ["POST"])
+def incrementProduct():
+    if session.get("UserID"):
+        return ""
+    return ""
 """
 Route to products page
 """
@@ -142,25 +148,21 @@ Should load basket from database into cookies
 """
 @app.route("/loadBasket")
 def loadBasket():
-    s = (
-        '{  "products":['
-        '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker", "count":"2" },'
-        '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker", "count":"1"}'
-        '],"dts":"2020-12-05T00:20:51"}'
-        )
-    return s
     if session.get("UserID"):
-        return jsonobj
-    return None
+        username = getUserName()
+        if(username):
+            return getBasketAsJsonString(session["UserID"])
+    return ""
 
 @app.route("/loadProducts")
 def loadProducts():
     s = ('{  "products":['
          '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
+		 '{"pid":"13337", "path":"/images/paul_senior.png", "name":"Trampcykel", "make":"Faze Clan"},'
          '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
     return s
     if session.get("UserID"):
-        return jsonobj
+        return ""
     return None
 
 #@app.route("/addProduct")
@@ -196,10 +198,24 @@ def getUserName():
         return ""
     return username
 
-def getProdJsonObj(userid, pid, mod):
+def getBasketItemAsJsonString(userid, pid, count):
+    data = datab.getBasketCount(userid, pid)
+    obj = {"pid":data[0],"path":data[1], "name":data[2],"make":data[3],"count":data[4] ,"price":data[5]}
+    return json.dumps(obj)
+
+def getBasketAsJsonString(userid):
+    basket = datab.getBasket(userid)
+    products = []
+    for item in basket:
+        obj = convertBasketResponseToJson(item)
+        products.append(obj)
+    jsonbasket = {"products":products}
+    return json.dumps(jsonbasket)
+
+def convertBasketResponseToJson(data):
+    obj = {"pid":data[0],"path":data[1], "name":data[2],"make":data[3],"count":data[4] ,"price":data[5]}
+    return obj
     
-
-
 
 TTL = datetime.timedelta(days = 7)
 

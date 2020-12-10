@@ -52,7 +52,11 @@ transaction = (
 
 
 accountsInsert = 'Accounts (UserName, Email, Password, AccessLevel)'
+productsInsert = 'Products (Name, Make, Price,  InStock)'
+productsInsertImage = 'Products (Name, Make, Price,  InStock, Image)'
 transactionsInsert = 'Transactions (UserID, Status)'
+
+
 class TransactionState(Enum):
     DONE = "completed"
     WAIT = "inprogress"
