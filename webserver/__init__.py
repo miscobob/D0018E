@@ -157,6 +157,7 @@ def loadBasket():
 def loadProducts():
     s = ('{  "products":['
          '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
+		 '{"pid":"13337", "path":"/images/paul_senior.png", "name":"Trampcykel", "make":"Faze Clan"},'
          '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
     return s
     if session.get("UserID"):
