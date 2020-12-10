@@ -81,7 +81,7 @@ Route to shopping basket
 @app.route('/basket', methods = ["POST","GET"])
 def basket():
     if session.get("UserID"):
-        return render_template('basket.html', user = true)
+        return render_template('basket.html', user = True)
     else:
         return render_template('basket.html')
 
