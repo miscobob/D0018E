@@ -1,9 +1,6 @@
 async function loadProducts()
 {
         loadFromServer();
-<<<<<<< HEAD
-=======
->>>>>>> 71884f9e060c89c0bc4b6ed1065f76de5be43a91
 }
 
 async function loadFromServer()
