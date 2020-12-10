@@ -98,7 +98,7 @@ async function increaseCount(pid)
     var cache = localStorage.getItem(cachename);
     if(cache != null)
     {
-        var basket = JSON.parse(cache);
+        var basket = JSON.parse(JSON.stringify(cache));
         var products = basket.products;
         var i;
         for( i in products)
