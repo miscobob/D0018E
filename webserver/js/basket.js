@@ -12,7 +12,8 @@ async function loadBasket()
     {
         var basket = JSON.parse(cache);
         var dts = Date.parse(basket.dts);
-        if(Date.now()-dts>TTL)
+        console.log(dts-Date.now()>-TTL)
+        if(!(dts-Date.now()>-TTL))
         {
             localStorage.removeItem(cachename); /// remove from storage 
             loadFromServer(); // updates with new data
@@ -59,6 +60,7 @@ function generateHTML(basket)
     {
         var row = document.createElement("DIV");
         row.className = "basketRow";
+        row.id = "row" + products[i].pid;
         
         var image = document.createElement("AMP-IMG");
         image.setAttribute("height","9");
@@ -70,9 +72,19 @@ function generateHTML(basket)
         row.appendChild(image)
         
         var text = document.createElement("P");
-        text.innerHTML = '<a href ="/products/'+products[i].pid+'">' + products[i].name + "</a> by "+ products[i].make + " in basket "+ products[i].count;
+        text.innerHTML = '<a href ="/products/'+products[i].pid+'">' + products[i].name + "</a> by "+ products[i].make + " priced at " +products[i].price;
         ///text.style.display = "table-cell";
         text.setAttribute("class","basketItem");
+        var form = document.createElement("FORM");
+        var field = document.createElement("INPUT");
+        field.setAttribute("type", "text");
+        field.value = products[i].count;
+        field.id = "count"+products[i].pid;
+        ///field.setAttribute("onkeyup","this.value=this.value.replace(/[^\d]/,'')" )
+        ///field.setAttribute("onChange","changeCount("+products[i].pid+", this.value)");
+        field.readOnly = true;
+        form.appendChild(field);
+        text.appendChild(form);
         row.appendChild(text);
 
         var increaseCount = document.createElement("BUTTON");
@@ -94,39 +106,21 @@ function generateHTML(basket)
     }
 }
 
-
-async function increaseCount(pid)
+async function changeCount(pid, value)
 {
-    var cachename = "basket";
-    var cache = localStorage.getItem(cachename);
-    if(cache != null)
+    if(typeof(value) != Number)
     {
-        var basket = JSON.parse(cache);
-        var products = basket.products;
-        var i;
-        for( i in products)
-        {
-            if(products[i].pid == pid)
+        try {
+            value = parseInt(value)
+        } catch (error) {
+            alert("tried to change value to non integer")
+            var e = document.getElementById("count"+pid);
+            if(e != null)
             {
-                products[i].count +=1;
-                updateServer(pid, 1)
-                localStorage.setItem(cachename, JSON.stringify(basket));
-                return;
+                e.value = value;
             }
         }
     }
-    var basket = {};
-    var products = [];
-    var date = new Date();
-    basket.products = products;
-    basket.dts = date.toISOString();
-    ///console.log(basket)
-    requestJSON(basket, pid, 1);
-
-}
-
-async function decreaseCount(pid)
-{
     var cachename = "basket";
     var cache = localStorage.getItem(cachename);
     if(cache != "")
@@ -138,7 +132,8 @@ async function decreaseCount(pid)
         {
             if(products[i].pid == pid)
             {
-                products[i].count -=1;
+                var mod = value - products[i].count;
+                products[i].count = value;
                 if (products[i].count == 0)
                 {
                     if (i == 0)
@@ -146,8 +141,83 @@ async function decreaseCount(pid)
                     else
                         products.splice(i,i);
                 }
-                updateServer(pid, -1);
+                updateServer(pid, mod);
                 localStorage.setItem(cachename, JSON.stringify(basket));
+                return;
+            }
+        }
+    }
+    alert("No entry in storage to change");
+}
+
+async function increaseCount(pid)
+{
+    const mod = 1
+    var cachename = "basket";
+    var cache = localStorage.getItem(cachename);
+    if(cache != null)
+    {
+        var basket = JSON.parse(cache);
+        var products = basket.products;
+        var i;
+        for( i in products)
+        {
+            if(products[i].pid == pid)
+            {
+                products[i].count += mod;
+                updateServer(pid, mod)
+                localStorage.setItem(cachename, JSON.stringify(basket));
+                var e = document.getElementById("count"+pid);
+                if(e != null)
+                {
+                    e.value = products[i].count;
+                }
+                return;
+            }
+        }
+    }
+    else{
+        requestJSON(pid, mod);
+    }
+    requestJSON(pid, mod, false);
+
+}
+
+async function decreaseCount(pid)
+{
+    const mod = 1
+    var cachename = "basket";
+    var cache = localStorage.getItem(cachename);
+    if(cache != "")
+    {
+        var basket = JSON.parse(cache);
+        var products = basket.products;
+        var i;
+        for( i in products)
+        {
+            if(products[i].pid == pid)
+            {
+                products[i].count -= mod;
+                if (products[i].count == 0)
+                {
+                    if (i == 0)
+                        products.splice(0,1);
+                    else
+                        products.splice(i,i);
+                    var e = document.getElementById("row"+pid);
+                    if(e != null)
+                    {
+                        e.innerHTML = "";
+                        e.remove();
+                    }
+                }
+                updateServer(pid, -mod);
+                localStorage.setItem(cachename, JSON.stringify(basket));
+                var e = document.getElementById("count"+pid);
+                if(e != null)
+                {
+                    e.value = products[i].count;
+                }
                 return;
             }
         }
@@ -157,7 +227,7 @@ async function decreaseCount(pid)
 
 
 
-function requestJSON(basket, pid, mod)
+function requestJSON(pid, mod, hasBasket = true)
 {
     var xhttp = new XMLHttpRequest();
     //console.log(basket)
@@ -166,9 +236,6 @@ function requestJSON(basket, pid, mod)
         if(this.readyState == 4 && this.status == 200)
         {
             var response = this.responseText;
-            var e = document.createElement("P");
-            e.innerHTML = response.toString();
-            document.getElementById("body").appendChild(e);
             if(response == "" || response == null)
             {
                 alert("You tried to add a non existing product!");
@@ -176,16 +243,25 @@ function requestJSON(basket, pid, mod)
             else
             {
                 var jsobj = JSON.parse(response.toString());
-                basket.products.push(jsobj);
                 var cachename = "basket";
-                console.log(basket)
-                var cache = localStorage.setItem(cachename, JSON.stringify(basket));
+                if(hasBasket)
+                {
+                    var cache = localStorage.getItem(cachename);
+                    var basket = JSON.parse(cache);
+                    basket.products.push(jsobj);
+                }
+                else{
+                    var date = new Date();
+                    jsobj.dts = date.toISOString();
+                    localStorage.setItem(cachename, JSON.stringify(jsobj));
+                }
             }
         }
     }
     xhttp.open("POST", "/addProductToBasket", true);
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
-    xhttp.send(JSON.stringify({"pid":pid, "mod":mod}));
+    var data = {"pid":pid, "mod":mod, "hasBasket":hasBasket}
+    xhttp.send(JSON.stringify(data));
 }
 
 function updateServer(pid, mod)
@@ -193,5 +269,6 @@ function updateServer(pid, mod)
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "/updateBasket", true);
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
-    xhttp.send(JSON.stringify({"pid":pid, "mod":mod}));
+    var data = {"pid":pid, "mod":mod}
+    xhttp.send(JSON.stringify(data));
 }

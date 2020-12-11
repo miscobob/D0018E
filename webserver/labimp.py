@@ -43,10 +43,11 @@ class databas:
                 statement += " INNER JOIN " +joinTables[i] + " ON " + conditions[i]
         if where:
             statement+= " WHERE "+ where
-        #print(statement%kwargs)
+        print(statement%kwargs)
         self.dbCursor.execute(statement, kwargs)
         for row in self.dbCursor:
             tbl.append(row)
+        print("sql response",tbl)
         return tbl
 
     def update(self, table, setCol, setValue, where = ""): #, **kwargs):
@@ -54,6 +55,7 @@ class databas:
         statement ="UPDATE "+table+" SET "+setCol+"="+setValue
         if where:
             statement += " WHERE "+where
+        print(statement)
         self.dbCursor.execute(statement) #, kwargs)
 
     def delete(self, table, where):
@@ -234,15 +236,15 @@ class labdb:
         Adds a product to a new basket transaction or to existing basket
         """
         userid = self.crypto.decrypt(userid).decode("utf-8")
-        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET.value)
+        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, status = tables.TransactionState.BASKET.value, UserID = userid)
         if not transaction: # check if new basket needed
             values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET.value)
             self.db.insertIntoTable(tables.transactionsInsert, values)
-            transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus, status = tables.TransactionState.BASKET.value)
+            transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, status = tables.TransactionState.BASKET.value, UserID = userid)
             transnr = transaction[0][0]
         else:
             transnr = transaction[0][0]
-            answer = self.db.select("Transaction%s"%userid, where = self.matchTransaction + " AND "+ self.matchItem, TransactionNumber =  transnr, Item = productid)
+            answer = self.db.select("Transaction%s"%userid,col="Count", where = self.matchTransaction + " AND "+ self.matchItem, TransactionNumber =  transnr, Item = productid)
             if answer:
                 count = answer[0][0]+nr
                 if count > 0:

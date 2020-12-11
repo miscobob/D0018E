@@ -91,10 +91,17 @@ def updateBasket():
         if session.get("UserID"):
             username = getUserName()
             if username:
+                pid = 0
                 obj = request.get_json()
-                if obj.get("pid") and obj.get("mod"):
+                if obj:
                     pid = obj["pid"]
                     mod = obj["mod"]
+                    print(pid, mod)
+                else:
+                    pid = request.form["pid"]
+                    mod = int(request.form["mod"])
+                    print(pid, mod)
+                if pid:
                     if not datab.addToCart(session["UserID"], pid, mod):
                         return "ok"
                     return "bad"
@@ -112,12 +119,23 @@ def addProductToBasket():
         username = getUserName()
         if username:
             obj = request.get_json()
-            if obj.get("pid") and obj.get("mod"):
-                pid = obj["pid"]
-                mod = obj["mod"]
-                if not datab.addToCart(session["UserID"], pid, mod):
-                    print("Response here")
-                    return getBasketItemAsJsonString(session["UserID"], pid, mod)
+            if obj:
+                    pid = obj["pid"]
+                    mod = obj["mod"]
+                    hasBasket = obj["hasBasket"]
+                    print(pid, mod)
+            else:
+                pid = request.form["pid"]
+                mod = int(request.form["mod"])
+                hasBasket = request.form["hasBasket"]
+                print(pid, mod)
+            if not datab.addToCart(session["UserID"], pid, mod):
+                if hasBasket:
+                    response = getBasketItemAsJsonString(session["UserID"], pid, mod)
+                else:
+                    response = getBasketAsJsonString(session["UserID"])
+                print("Response here",response)
+                return response
             return "{}"
         else:
             print("Response tere")
@@ -135,6 +153,8 @@ Route to products page
 """
 @app.route('/products', methods = ["POST", "GET"])
 def products():
+    if session.get("UserID"):
+        return render_template('products.html', user = True)
     return render_template('products.html')
 """
 Route to product page
@@ -142,7 +162,7 @@ Route to product page
 @app.route('/products/<int:pid>')
 def productPage(pid):
     if session.get("UserID"):
-        return render_template('products.html', user=True)
+        return render_template('product.html', user=True)
     return render_template('product.html', pname = pid)
 
 """
@@ -173,7 +193,7 @@ def loadBasket():
 def loadProducts():
     s = ('{  "products":['
          '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
-		 '{"pid":"13337", "path":"/images/paul_senior.png", "name":"Trampcykel", "make":"Faze Clan"},'
+		 '{"pid":"1", "path":"/images/paul_senior.png", "name":"Trampcykel", "make":"Faze Clan"},'
          '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
     return s
     if session.get("UserID"):
@@ -213,8 +233,9 @@ def getUserName():
         return ""
     return username
 
-def getBasketItemAsJsonString(userid, pid, count):
+def getBasketItemAsJsonString(userid, pid):
     data = datab.getBasketCount(userid, pid)
+    print(data)
     obj = {"pid":data[0],"path":data[1], "name":data[2],"make":data[3],"count":data[4] ,"price":data[5]}
     return json.dumps(obj)
 
