@@ -55,11 +55,12 @@ def register():
            return render_template('register.html', error = "User name or email is already used by other account")
         if re.findall("[\W]",username) or not username:
             return render_template('register.html', error = "No whitespace or special are aloud in user name")
-        if not re.match("^[\w]+([\w]|\-|\_|\.)*[\w]+@[\w]+\.[\w]+$", email):
+        if not re.match("^[\w]+([\w](\-|\_|\.))*[\w]+@[\w]+([\w](\-|\_|\.))*[\w]+\.[\w]+$", email):
             return render_template('register.html', error = "Please submit a valid email address")
         if re.findall("[\s]", password) or not password:
             return render_template('register.hmtl', error = "No whitespace are aloud in password")
         datab.regUser(username, email, password)
+        
         return redirect(url_for('login',fromRegister=True))
     return render_template('register.html')
 
@@ -129,7 +130,8 @@ def addProductToBasket():
                 mod = int(request.form["mod"])
                 hasBasket = request.form["hasBasket"]
                 print(pid, mod)
-            if not datab.addToCart(session["UserID"], pid, mod):
+            
+            if datab.hasProduct(pid) and not datab.addToCart(session["UserID"], pid, mod):
                 if hasBasket:
                     response = getBasketItemAsJsonString(session["UserID"], pid, mod)
                 else:
