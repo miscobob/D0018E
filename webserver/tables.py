@@ -37,6 +37,19 @@ tables['Transactions'] = (
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
     )
 
+tables['TransactionData'] = (
+    '`TransactionData` ('
+    '`TransactionNumber` int NOT NULL,'
+    '`Item` int NOT NULL,'
+    '`Count` int NOT NULL,'
+    'KEY `TransactionNumber_idx` (`TransactionNumber`),'
+    'KEY `ProductId_idx` (`Item`),'
+    'CONSTRAINT `ProductIdData` FOREIGN KEY (`Item`) REFERENCES `Products` (`ProductID`),'
+    'CONSTRAINT `TransactionNumberData` FOREIGN KEY (`TransactionNumber`) REFERENCES `Transactions` (`TransactionNumber`)'
+    ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
+    )
+
+
 transaction = (
     '`Transaction%(UserID)s` ('
     '`TransactionNumber` int NOT NULL,'
@@ -55,6 +68,7 @@ accountsInsert = 'Accounts (UserName, Email, Password, AccessLevel)'
 productsInsert = 'Products (Name, Make, Price,  InStock)'
 productsInsertImage = 'Products (Name, Make, Price,  InStock, Image)'
 transactionsInsert = 'Transactions (UserID, Status)'
+transactionDataInsert = 'TransactionData (TransactionNumber, Item, Count)'
 
 
 class TransactionState(Enum):

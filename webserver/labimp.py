@@ -1,7 +1,9 @@
 from cryptography.fernet import Fernet
-import mysql.connector
-from . import tables
-#import tables
+import mysql.connector, os.path
+try:
+    from . import tables
+except:
+    import tables
 
 class databas:
     def __init__(self, usr, password, hst, dbname, tables):
@@ -24,6 +26,7 @@ class databas:
     """
     def insertIntoTable(self, table, values):
         self.testConnection()
+        #print('INSERT INTO ' + table + ' VALUES('+values + ')')
         self.dbCursor.execute('INSERT INTO ' + table + ' VALUES('+values + ')')
         self.dbConnection.commit()
             
@@ -43,25 +46,25 @@ class databas:
                 statement += " INNER JOIN " +joinTables[i] + " ON " + conditions[i]
         if where:
             statement+= " WHERE "+ where
-        print(statement%kwargs)
+        #print(statement%kwargs)
         self.dbCursor.execute(statement, kwargs)
         for row in self.dbCursor:
             tbl.append(row)
-        print("sql response",tbl)
+        #print("sql response",tbl)
         return tbl
 
-    def update(self, table, setCol, setValue, where = ""): #, **kwargs):
+    def update(self, table, setCol, setValue, where = "", **kwargs):
         self.testConnection()
         statement ="UPDATE "+table+" SET "+setCol+"="+setValue
         if where:
             statement += " WHERE "+where
-        print(statement)
-        self.dbCursor.execute(statement) #, kwargs)
+        #print(statement % kwargs)
+        self.dbCursor.execute(statement, kwargs)
 
     def delete(self, table, where):
         self.testConnection()
         statement = "DELETE FROM "+table+" WHERE "+where
-        print(statement)
+        #print(statement)
         self.dbCursor.execute(statement)
     """
     returns all colmns from table
@@ -191,8 +194,7 @@ class labdb:
     """
     def regUser(self, user, email, pw):
         self.regAccount(user, email, pw, 'user')
-        self.db.createTable(tables.transaction, UserID = self.db.select("Accounts", col = "UserID", where = self.matchUserName, UserName = user)[0][0])
-
+        
     """
     Registers a Website-manager as user with given email and given password
     """
@@ -204,10 +206,6 @@ class labdb:
     """
     def regAdmin(self, user, email, pw):
         self.regAccount(user, email, pw, 'admin')
-
-    def getProduct(self, pid):
-        answer = self.db.select("Products", where=self.matchPid, PID = pid)
-        return answer[0]
 
     """
     returns username with given userid if not any result return empty string
@@ -244,21 +242,21 @@ class labdb:
             transnr = transaction[0][0]
         else:
             transnr = transaction[0][0]
-            answer = self.db.select("Transaction%s"%userid,col="Count", where = self.matchTransaction + " AND "+ self.matchItem, TransactionNumber =  transnr, Item = productid)
+            answer = self.db.select("TransactionData",col="Count", where = self.matchTransaction + " AND "+ self.matchItem, TransactionNumber =  transnr, Item = productid)
             if answer:
                 count = answer[0][0]+nr
                 if count > 0:
-                    self.db.update("Transaction%s"%userid, "Count", str(count), "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
+                    self.db.update("TransactionData", "Count", str(count), "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
                     self.db.commit()
                     return 0
                 elif count == 0:
-                    self.db.delete("Transaction%s"%userid, "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
+                    self.db.delete("TransactionData", "TransactionNumber='%s' AND Item='%s'"%(transnr, productid))
                     self.db.commit()
                     return 0
                 else:
                     return 1
         if nr >= 1:
-            self.db.insertIntoTable("Transaction%s"%userid, "'%s', '%s', '%s'"%(transnr, productid, nr))
+            self.db.insertIntoTable(tables.transactionDataInsert, "'%s', '%s', '%s'"%(transnr, productid, nr))
             return 0
         return 1
     
@@ -275,13 +273,13 @@ class labdb:
         conditions = ["t1.Item = t2.ProductID", "t1.TransactionNumber=t3.TransactionNumber"]
         if pid:
             where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus + " and " +"t1."+self.matchItem
-            answer = self.db.select("Transaction%s"%userid +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value, Item = pid)
+            answer = self.db.select("TransactionData" +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value, Item = pid)
             if answer:
                 return answer[0]
             return ""
         else:
             where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus
-            answer = self.db.select("Transaction%s"%userid +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value)
+            answer = self.db.select("TransactionData" +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value)
             return answer
 
     def getBasket(self, userid):
@@ -295,12 +293,27 @@ class labdb:
             values = "'%s', '%s', '%s', '%s'" % (name, make, price, stock)
             self.db.insertIntoTable(tables.productsInsert, values)
 
-    def resupply(self, pid, stock):
-        return True
+    def getProducts(self):
+        answer = self.db.select("Products")
+        return answer
+
+    def getProduct(self, pid):
+        answer = self.db.select("Products", where=self.matchPid, PID = pid)
+        if answer:
+            return answer[0]
+        return ()
+
+    def setStock(self, pid, stock):
+        if(stock  > 0 ):
+            self.db.update("Products", "InStock", stock, where = self.matchPid, PID = pid)
+            update(self, table, setCol, setValue, where = self.matchPid, PID = pid)
 
     def addImagePath(self, pid, imagepath):
-        return True
-
+        if(os.path.isfile(imagepath)):
+            self.db.update("Products", "InStock", stock)
+            update(self, table, setCol, setValue)
+            return True
+        return False
 
     """
     Closes connection to db
@@ -308,7 +321,7 @@ class labdb:
     def close(self):
         self.db.close()
 
-
+"""
 testing = True
 if __name__ == "__main__" and testing:
     db = labdb()
@@ -317,18 +330,19 @@ if __name__ == "__main__" and testing:
         email = "testmail@mail.com"
         pw = "pw"
         #db.regUser(user, email, pw)
-        #db.addNewProduct("cykel","disney",999)
+        #db.addNewProduct("cykel","disney",999, imagepath="/images/image1.png")
         print(db.hasUserWith(user, email))
         print(db.hasUserWith(user))
         print(db.hasUserWith(email = email))
         userid = db.validateUser(user, pw)
         print(db.getUserName(userid))
-        #print(db.addToCart(userid, 1, 1))
-        print(db.addToCart(userid, 2, 1))
+        print(db.addToCart(userid, 1, 1))
+        #print(db.addToCart(userid, 2, 1))
         print(db.getBasket(userid))
-        print(db.getProduct(2))
+        print(db.getProduct(1))
+        print(db.getProducts())
         db.close()
     else:
         print("except")
-        db.close()
-    
+        db.close()  
+"""

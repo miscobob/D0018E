@@ -177,7 +177,6 @@ def sendImage(image):
     return send_from_directory('images',image)
 
 
-
 """
 Should load basket from database into cookies
 """
@@ -187,7 +186,7 @@ def loadBasket():
         username = getUserName()
         if(username):
             return getBasketAsJsonString(session["UserID"])
-    return ""
+    return {}
 
 @app.route("/loadProducts")
 def loadProducts():
@@ -204,7 +203,6 @@ def loadProducts():
 #def addProduct():
 #kör makeProduct.js
 #lägg till produkt i databas
-
 
 """
 validates username and password, if validated set userid to return userid of session
