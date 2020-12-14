@@ -303,6 +303,9 @@ class labdb:
             return answer[0]
         return ()
 
+    def hasProduct(self, pid):
+        return bool(self.getProduct(pid))
+
     def setStock(self, pid, stock):
         if(stock  > 0 ):
             self.db.update("Products", "InStock", stock, where = self.matchPid, PID = pid)
