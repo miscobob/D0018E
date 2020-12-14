@@ -260,7 +260,7 @@ function requestJSON(pid, mod, hasBasket = true)
                     var basket = JSON.parse(cache);
                     basket.products.push(jsobj);
                 }
-                else if(jsobj != null){
+                else if(!isEmpty(jsobj)){
                     var date = new Date();
                     jsobj.dts = date.toISOString();
                     localStorage.setItem(cachename, JSON.stringify(jsobj));
@@ -276,6 +276,15 @@ function requestJSON(pid, mod, hasBasket = true)
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
     var data = {"pid":pid, "mod":mod, "hasBasket":hasBasket}
     xhttp.send(JSON.stringify(data));
+}
+
+function isEmpty(obj)
+{
+    for(i in obj)
+    {
+        return false;
+    }
+    return true;
 }
 
 function updateServer(pid, mod)
