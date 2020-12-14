@@ -260,10 +260,14 @@ function requestJSON(pid, mod, hasBasket = true)
                     var basket = JSON.parse(cache);
                     basket.products.push(jsobj);
                 }
-                else{
+                else if(jsobj != null){
                     var date = new Date();
                     jsobj.dts = date.toISOString();
                     localStorage.setItem(cachename, JSON.stringify(jsobj));
+                }
+                else
+                {
+                    alert("Product not found")
                 }
             }
         }
