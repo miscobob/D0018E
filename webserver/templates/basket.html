@@ -30,9 +30,12 @@
 <script src="/js/basket.js"></script>
 <script>
 window.addEventListener("load", function(){
+    console.log("load");
     loadBasket();
 });
-
+window.addEventListener("unload", function(){
+    console.log("unload");
+});
 </script>
 {% endblock %}
 {% block header %}
