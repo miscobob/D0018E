@@ -342,10 +342,10 @@ if __name__ == "__main__" and testing:
         print(db.addToCart(userid, 1, 1))
         #print(db.addToCart(userid, 2, 1))
         print(db.getBasket(userid))
-        print(db.getProduct(1))
-        print(db.getProducts())
+        data = db.getProduct(1)
+        obj = {"pid":data[0],"path":data[5], "name":data[2],"make":data[3],"count":1 ,"price":data[4]}
+        print(obj)
         db.close()
     else:
         print("except")
-        db.close()  
-"""
+        db.close()  """

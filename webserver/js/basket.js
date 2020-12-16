@@ -1,7 +1,6 @@
 
 async function loadBasket()
 {
-    const cachename = "basket";
     const TTL = 3600000
     var cache = localStorage.getItem(cachename);
     if(cache == null)
@@ -10,11 +9,12 @@ async function loadBasket()
     }
     else
     {
+        var basket;
         try {
-            var basket = JSON.parse(cache);
+            basket = JSON.parse(cache);
         } catch (error) {
             console.warn(error);
-            var basket = JSON.parse(JSON.stringify(cache));
+            basket = JSON.parse(JSON.stringify(cache));
         }
         var dts = Date.parse(basket.dts);
         console.log(dts-Date.now()>-TTL)
@@ -36,7 +36,6 @@ async function loadFromServer()
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange =  function()
     {
-        const cachename = "basket";
         if(this.readyState == 4 && this.status == 200)
         {
             var response = this.responseText;
@@ -57,6 +56,7 @@ async function loadFromServer()
 
 function generateHTML(basket)
 {
+    console.log(basket);
     var products = basket.products;
     var table = document.getElementById("basketArea");
     var i;
@@ -126,7 +126,6 @@ async function changeCount(pid, value)
             }
         }
     }
-    var cachename = "basket";
     var cache = localStorage.getItem(cachename);
     if(cache != "")
     {
@@ -158,7 +157,6 @@ async function changeCount(pid, value)
 async function increaseCount(pid)
 {
     const mod = 1
-    var cachename = "basket";
     var cache = localStorage.getItem(cachename);
     if(cache != null)
     {
@@ -175,19 +173,16 @@ async function increaseCount(pid)
             if(products[i].pid == pid)
             {
                 products[i].count += mod;
-                updateServer(pid, mod)
                 localStorage.setItem(cachename, JSON.stringify(basket));
                 var e = document.getElementById("count"+pid);
                 if(e != null)
                 {
                     e.value = products[i].count;
                 }
+                updateServer(pid, mod);
                 return;
             }
         }
-    }
-    else{
-        requestJSON(pid, mod);
     }
     requestJSON(pid, mod, false);
 
@@ -196,7 +191,6 @@ async function increaseCount(pid)
 async function decreaseCount(pid)
 {
     const mod = 1
-    var cachename = "basket";
     var cache = localStorage.getItem(cachename);
     if(cache != "")
     {
@@ -253,7 +247,6 @@ function requestJSON(pid, mod, hasBasket = true)
             else
             {
                 var jsobj = JSON.parse(response.toString());
-                var cachename = "basket";
                 if(hasBasket)
                 {
                     var cache = localStorage.getItem(cachename);
@@ -291,6 +284,15 @@ function updateServer(pid, mod)
 {
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "/updateBasket", true);
+    xhttp.onreadystatechange = function()
+    {
+        var text = this.responseText;
+        if(text != "")
+        {
+            localStorage.removeItem(cachename)
+            alert(text + "\n basket will be cleared");
+        }
+    }
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
     var data = {"pid":pid, "mod":mod}
     xhttp.send(JSON.stringify(data));

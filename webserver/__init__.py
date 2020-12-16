@@ -1,11 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, send_from_directory, safe_join, abort
 import mysql.connector
-import re
-from . import labimp
-#import labimp
-import datetime
-import json
-import functools
+import re, datetime, json
+try:
+    from . import labimp
+except :
+    import labimp
 
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
@@ -89,67 +88,62 @@ def basket():
 @app.route('/updateBasket', methods = ["POST"])
 def updateBasket():
     if request.method == "POST":
-        if session.get("UserID"):
-            username = getUserName()
-            if username:
-                pid = 0
-                obj = request.get_json()
-                if obj:
-                    pid = obj["pid"]
-                    mod = obj["mod"]
-                    print(pid, mod)
-                else:
-                    pid = request.form["pid"]
-                    mod = int(request.form["mod"])
-                    print(pid, mod)
-                if pid:
-                    if not datab.addToCart(session["UserID"], pid, mod):
-                        return "ok"
-                    return "bad"
+        obj = request.get_json()
+        if obj:
+            pid = obj["pid"]
+            mod = obj["mod"]
         else:
-            return "bad"
+            pid = request.form["pid"]
+            mod = int(request.form["mod"])
+        if(datab.hasProduct(pid)):
+            if session.get("UserID"):
+                username = getUserName()
+                if username:
+                    if not datab.addToCart(session["UserID"], pid, mod):
+                        return ""
+                    return "no product with id " + str(pid)
+                return("failed to verfiy user authenticity")
+            return ""
+        return "no product with id " + str(pid)
     else:
-        return "bad"
+        return redirect("/")
 
 """
 adds a new item to user basket
 """
 @app.route('/addProductToBasket', methods = ["POST"])
 def addProductToBasket():
-    if session.get("UserID"):
-        username = getUserName()
-        if username:
-            obj = request.get_json()
-            if obj:
-                    pid = obj["pid"]
-                    mod = obj["mod"]
-                    hasBasket = obj["hasBasket"]
-                    print(pid, mod)
-            else:
-                pid = request.form["pid"]
-                mod = int(request.form["mod"])
-                hasBasket = request.form["hasBasket"]
-                print(pid, mod)
-            
-            if datab.hasProduct(pid) and not datab.addToCart(session["UserID"], pid, mod):
-                if hasBasket:
-                    response = getBasketItemAsJsonString(session["UserID"], pid, mod)
-                else:
-                    response = getBasketAsJsonString(session["UserID"])
-                print("Response here",response)
-                return response
-            return "{}"
+    if request.method == "POST":
+        obj = request.get_json()
+        if obj:
+                pid = obj["pid"]
+                mod = obj["mod"]
+                hasBasket = obj["hasBasket"]
         else:
-            print("Response tere")
+            pid = request.form["pid"]
+            mod = int(request.form["mod"])
+            hasBasket = request.form["hasBasket"]
+        if datab.hasProduct(pid):
+            if session.get("UserID"):
+                username = getUserName()
+                if username:
+                    if  not datab.addToCart(session["UserID"], pid, mod):
+                        if hasBasket:
+                            response = getBasketItemAsJsonString(session["UserID"], pid, mod)
+                        else:
+                            response = getBasketAsJsonString(session["UserID"])
+                        return response
+                    return "{}"
+            obj = getItemAsJsonString(pid)
+            if hasBasket:
+                return obj
+            else:
+                data = '{"products":['+obj+']}'
+                return data
+        else:
             return "{}"
-    print("Response dere")
     return "{}"
 
-@app.route('/incrementProduct', methods = ["POST"])
-def incrementProduct():
-    if session.get("UserID"):
-        return ""
-    return ""
 """
 Route to products page
 """
@@ -235,8 +229,13 @@ def getUserName():
 
 def getBasketItemAsJsonString(userid, pid):
     data = datab.getBasketCount(userid, pid)
-    print(data)
+    #print(data)
     obj = {"pid":data[0],"path":data[1], "name":data[2],"make":data[3],"count":data[4] ,"price":data[5]}
+    return json.dumps(obj)
+
+def getItemAsJsonString(pid):
+    data = datab.getProduct(pid)
+    obj = {"pid":data[0],"path":data[5], "name":data[1],"make":data[2],"count":1 ,"price":data[3]}
     return json.dumps(obj)
 
 def getBasketAsJsonString(userid):
