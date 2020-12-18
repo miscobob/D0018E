@@ -16,7 +16,7 @@ function submitRegister()
 {
     var form = document.forms.register;
     var name = form.elements.name;
-    var pw = from.elements.password;
+    var pw = form.elements.password;
     if(name <5)
     {
         alert("Username must be more than 4 chars");
