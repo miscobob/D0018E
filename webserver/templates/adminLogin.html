@@ -1,0 +1,16 @@
+{% extends "adminBase.html" %}
+{% block title %}Login{% endblock %}
+{% block header %}
+<h2>Login admin</h2>
+{% endblock %}
+{% block content %}
+<p>Enter your employee info!</p>
+{% endblock %}
+{% block form %}
+<p>Login form<p>
+<form name = "login" action="#" method = "post">
+<p><input  type="text" name= "username"></p>
+<p><input  type="password" name= "password"></p>
+<p><input type="button" onclick="submitLogin()" value = "login"></p>
+</form>
+{% endblock %}

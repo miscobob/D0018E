@@ -1,0 +1,31 @@
+{% extends "adminBase.html" %}
+{% block title %}Account{% endblock %}
+{% block jsfiles %}
+<script src="/js/adminRegister.js"></script>
+{% endblock %}
+{% block header %}
+<h2>Account page</h2>
+{% endblock %}
+{% block content %}
+<p>This is your account page {{user}}</p>
+{% endblock %}
+{% block form %}
+<form name="newpassword" action="#" method = "post">
+    <p>set new password</p>
+    <p>Enter old password = <input type="password" name= "oldpassword"></p>
+    <p>Enter new password = <input type="password" name= "newpassword"></p>
+    <p><input type="submit" value = "set new password"></p>
+</form>
+{% if admin %}
+    <form id = "register" action="/admin/register" onsubmit="submitRegister()" method = "post">
+        <p>Register new manager</p>
+        <p>Enter username = <input type="text" name= "username"></p>
+        <p>Enter email = <input type="email" name="email"></p>
+        <p>Enter password = <input type="password" name= "password"></p>
+        <p>select accesslevel <input type="radio" id="admin" name="accesslevel" value="admin"><label for="admin">admin</label>
+            <input type="radio" id="manager" name="accesslevel" value="manager"><label for="manager">manager</label></p>
+        <p><input type="button" onclick="submitRegister()" value = "register"></p>
+    </form>
+    <div id="response"></div>
+{% endif %}
+{% endblock %}
