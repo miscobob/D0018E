@@ -70,8 +70,17 @@ productsInsertImage = 'Products (Name, Make, Price,  InStock, Image)'
 transactionsInsert = 'Transactions (UserID, Status)'
 transactionDataInsert = 'TransactionData (TransactionNumber, Item, Count)'
 
-
 class TransactionState(Enum):
     DONE = "completed"
     WAIT = "inprogress"
     BASKET = "inbasket"
+    def __str__(self):
+        return self.value
+
+
+class AccountAccess(Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    USER = "user"
+    def __str__(self):
+        return self.value
