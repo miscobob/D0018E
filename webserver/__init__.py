@@ -3,8 +3,10 @@ import mysql.connector
 import re, datetime, json
 try:
     from . import labimp
+    from . import tables
 except :
     import labimp
+    import tables
 
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
@@ -12,9 +14,14 @@ datab = labimp.labdb()
 
 @app.route('/')
 def start():
-    if(session.get("UserID")):
+    if(isUser(session.get("UserID"))):
         return render_template('home.html', user = True)
     return render_template('home.html')
+
+@app.route('/admin')
+@app.route('/admin/')
+def admin():
+    return redirect('/admin/login')
 
 @app.route('/favicon.ico')
 def favicon():
@@ -22,9 +29,8 @@ def favicon():
 
 @app.route('/login', methods = ["POST","GET"])
 def login():
-    if session.get("UserID"):
-        if getUserName():
-            return redirect("/account")
+    if isUser(session.get("UserID")):
+        return redirect("/account")
     if(request.method == "POST"):
         username = str(request.form["username"])
         password = str(request.form["password"])
@@ -36,6 +42,19 @@ def login():
         return render_template('login.html',message = "Success, a new account has been created you can now log in!")
     return render_template('login.html')
 
+@app.route('/admin/login', methods = ["POST","GET"])
+def adminLogin():
+    if isEmployee(session.get("UserID")):
+        return redirect('/admin/account')
+    if(request.method == "POST"):
+        username = str(request.form["username"])
+        password = str(request.form["password"])
+        if validateEmployee(username, password):
+            return redirect("/admin/account")
+        return render_template('adminLogin.html',error = "invalid username/password combination")
+    else:
+        return render_template('adminLogin.html')        
+
 @app.route('/logout')
 def logout():
     if session.get("UserID"):
@@ -44,20 +63,20 @@ def logout():
 
 @app.route('/register', methods = ["POST","GET"])
 def register():
-    if session.get("UserID"):
+    if isUser(session.get("UserID"), TTLUser):
         return redirect("/account")
     if(request.method == "POST"):
         username = request.form["username"]
         email = request.form["email"]
         password = request.form["password"]
-        if datab.hasUserWith(username = username, email = email):
-           return render_template('register.html', error = "User name or email is already used by other account")
-        if re.findall("[\W]",username) or not username:
-            return render_template('register.html', error = "No whitespace or special are aloud in user name")
+        if re.findall("[\W]",username) or len(username)<5:
+            return render_template('register.html', error = "No whitespace or special are aloud in user name and must be longer then 4 characters")
         if not re.match("^[\w]+([\w](\-|\_|\.))*[\w]+@[\w]+((\-|\_|\.)*[\w]+)*\.[\w]+$", email):
             return render_template('register.html', error = "Please submit a valid email address")
-        if re.findall("[\s]", password) or not password:
-            return render_template('register.hmtl', error = "No whitespace are aloud in password")
+        if re.findall("[\s]", password) or len(password)<5:
+            return render_template('register.hmtl', error = "No whitespace are aloud in password and must be longer then 4 characters")
+        if datab.hasUserWith(username = username, email = email):
+           return render_template('register.html', error = "User name or email is already used by other account")
         datab.regUser(username, email, password)
         
         return redirect(url_for('login',fromRegister=True))
@@ -65,22 +84,79 @@ def register():
 
 @app.route('/account', methods = ["POST","GET"])
 def account():
-    if session.get("UserID"):
+    if isUser(session.get("UserID"), TTLUser):
         username = getUserName()
         if not username: 
             return redirect("/login")
         if(request.method == "POST"):
-            return render_template('account.html', user = username, error="password incorrect")
+            return setNewPassword('account.html', username)
         else:
             return render_template('account.html', user = username)
     return redirect("/login")
 
+@app.route('/admin/account', methods = ["POST","GET"])
+def adminAccount():
+    if session.get("UserID") and (answer:= hasAccess(session.get("UserID"), [tables.AccountAccess.MANAGER,tables.AccountAccess.ADMIN],TTLAdmin)):
+        username = answer[1]
+        access = answer[0]
+        if(request.method == "POST"):
+            return setNewPassword('adminAccount.html', username, admin= (access == tables.AccountAccess.ADMIN))
+        else:
+            if access == tables.AccountAccess.ADMIN:
+                return render_template('adminAccount.html', user = username, admin = True)
+            return render_template('adminAccount.html', user = username)
+    return redirect("/admin/login")
+
+def setNewPassword(htmlFile, username, admin = False):
+    """
+    tries to set new password for user in session
+    """
+    oldpassword = request.form["oldpassword"]
+    newpassword = request.form["newpassword"]
+    if re.findall("[\s]", newpassword) or len(newpassword)<5:
+        return render_template(htmlFile, user = username, error="password must have atleast 5 chars and no whitespaces", admin = admin)
+    if datab.updatePassword(session.get("UserID"),oldpassword,newpassword):
+        return render_template(htmlFile, user = username, message="password updated", admin = admin)
+    return render_template(htmlFile, user = username, error="password incorrect", admin = admin)
+
+@app.route('/admin/registerEmployee', methods = ["POST"])
+def registerEmployee():
+    if request.method == "POST" and isEmployee(session.get("UserID"), TTLAdmin):
+        obj = request.get_json()
+        if obj:
+            username = obj["username"]
+            email = obj["email"]
+            password = obj["password"]
+            accessLevel = tables.AccountAccess(obj["accesslevel"])
+        else:
+            username = request.form["username"]
+            email = request.form["email"]
+            password = request.form["password"]
+            accessLevel = tables.AccountAccess(request.form["accesslevel"])
+            
+        if re.findall("[\W]",username) or len(username)<5:
+            return "<h3>No whitespace or special are aloud in user name and must be longer then 4 characters</h3>"
+        if not re.match("^[\w]+([\w](\-|\_|\.))*[\w]+@[\w]+((\-|\_|\.)*[\w]+)*\.[\w]+$", email):
+            return "<h3>Please submit a valid email address</h3>"
+        if re.findall("[\s]", password) or len(password)<5:
+            return "<h3>No whitespace are aloud in password and must be longer then 4 characters</h3>"
+        if datab.hasUserWith(username = username, email = email):
+            return "<h3>User name or email is already used by other account</h3>"
+        if accessLevel is tables.AccountAccess.ADMIN:
+            datab.regAdmin(username, email, password)
+        elif accessLevel is tables.AccountAccess.MANAGER:
+            datab.regManager(username, email, password)
+        else:
+            return "<h3>please select a Accesslevel for new account</h3>"
+        return "<p>New user employee has been registered</p>"
+        
+    return redirect("/")
 """
 Route to shopping basket
 """
 @app.route('/basket', methods = ["POST","GET"])
 def basket():
-    if session.get("UserID"):
+    if isUser(session.get("UserID"), TTLUser):
         return render_template('basket.html', user = True)
     else:
         return render_template('basket.html')
@@ -96,7 +172,7 @@ def updateBasket():
             pid = request.form["pid"]
             mod = int(request.form["mod"])
         if(datab.hasProduct(pid)):
-            if session.get("UserID"):
+            if isUser(session.get("UserID")):
                 username = getUserName()
                 if username:
                     if not datab.addToCart(session["UserID"], pid, mod):
@@ -108,11 +184,12 @@ def updateBasket():
     else:
         return redirect("/")
 
-"""
-adds a new item to user basket
-"""
+
 @app.route('/addProductToBasket', methods = ["POST"])
 def addProductToBasket():
+    """
+    adds a new item to user basket
+    """
     if request.method == "POST":
         obj = request.get_json()
         if obj:
@@ -124,7 +201,7 @@ def addProductToBasket():
             mod = int(request.form["mod"])
             hasBasket = request.form["hasBasket"]
         if datab.hasProduct(pid):
-            if session.get("UserID"):
+            if isUser(session.get("UserID")):
                 username = getUserName()
                 if username:
                     if  not datab.addToCart(session["UserID"], pid, mod):
@@ -134,7 +211,7 @@ def addProductToBasket():
                             response = getBasketAsJsonString(session["UserID"])
                         return response
                     return "{}"
-            obj = getItemAsJsonString(pid)
+            obj = getProductAsJsonString(pid)
             if hasBasket:
                 return obj
             else:
@@ -144,21 +221,33 @@ def addProductToBasket():
             return "{}"
     return "{}"
 
-"""
-Route to products page
-"""
-@app.route('/products', methods = ["POST", "GET"])
+
+@app.route('/products', methods = ["GET"])
 def products():
-    if session.get("UserID"):
+    """
+    Route to products page
+    """
+    if isUser(session.get("UserID"), TTLUser):
         return render_template('products.html', user = True)
     return render_template('products.html')
-"""
-Route to product page
-"""
+
+@app.route('/admin/products', methods = ["GET"])
+def adminProducts():
+    """
+    Route to admin products page
+    """
+    if isEmployee(session.get("UserID"), TTLAdmin):
+        return render_template('adminProducts.html', user = True)
+    return redirect('/admin/login')
+
+
 @app.route('/products/<int:pid>')
 def productPage(pid):
-    if session.get("UserID"):
-        return render_template('product.html', user=True)
+    """
+    Route to product page
+    """
+    if isUser(session.get("UserID"), TTLUser):
+        return render_template('product.html', pname = pid, user=True)
     return render_template('product.html', pname = pid)
 
 """
@@ -173,11 +262,12 @@ def sendImage(image):
     return send_from_directory('images',image)
 
 
-"""
-Should load basket from database into cookies
-"""
+
 @app.route("/loadBasket")
 def loadBasket():
+    """
+    Should load basket from database into cookies
+    """
     if session.get("UserID"):
         username = getUserName()
         if(username):
@@ -200,10 +290,11 @@ def loadProducts():
 #kör makeProduct.js
 #lägg till produkt i databas
 
-"""
-validates username and password, if validated set userid to return userid of session
-"""
+
 def validateUser(username, password):
+    """
+    validates username and password, if validated set userid to return userid of session
+    """
     userId = datab.validateUser(username, password)
     if(userId):
         session["UserID"] = userId
@@ -212,20 +303,53 @@ def validateUser(username, password):
     else:
         return False
 
-"""
-Will return username linked to UserID of session, no username is found it will pop the userid from the session
-"""
-def getUserName():
+def validateEmployee(username, password):
+    userId = datab.validateEmployee(username, password)
+    if(userId):
+        session["UserID"] = userId
+        session["DTS"] = datetime.datetime.now().strftime("%y:%m:%d,%H:%M:%S")
+        return True
+    else:
+        return False
+
+def hasAccess(userid, access, TTL):
+    """
+    check if given userid exist in list of access level
+    """
+    if not session.get('DTS'):
+        session.pop("UserID", None)
+        return None
+    dts = datetime.datetime.strptime(session['DTS'],"%y:%m:%d,%H:%M:%S")
+    if TTL and datetime.datetime.now()-dts>TTL:
+        session.pop("UserID", None)
+        session.pop("DTS", None)
+        return None
+    accessLevel, username = datab.getAccessLevel(userid)
+    accessLevel = tables.AccountAccess(accessLevel)
+    if accessLevel in access:
+        return accessLevel, username
+    return None
+         
+def getUserName(TTL = 0):
+    """
+    Will return username linked to UserID of session, 
+    no username is found it will pop the userid from the session
+    """
     if not session.get('DTS'):
         session.pop("UserID", None)
         return ""
     dts = datetime.datetime.strptime(session['DTS'],"%y:%m:%d,%H:%M:%S")
     username = ""
-    if datetime.datetime.now() - dts > TTL or not (username := datab.getUserName(session["UserID"])):
+    if (TTL and datetime.datetime.now()-dts>TTL) or not (username := datab.getUserName(session["UserID"])):
         session.pop("UserID", None)
         session.pop("DTS", None)
-        return ""
     return username
+
+def isUser(id, TTL = 0):
+    return id and hasAccess(id, [tables.AccountAccess.USER], TTL)
+
+def isEmployee(id, TTL = 0):
+    return id and hasAccess(id, [tables.AccountAccess.ADMIN, tables.AccountAccess.MANAGER], TTL)
 
 def getBasketItemAsJsonString(userid, pid):
     data = datab.getBasketCount(userid, pid)
@@ -233,7 +357,7 @@ def getBasketItemAsJsonString(userid, pid):
     obj = {"pid":data[0],"path":data[1], "name":data[2],"make":data[3],"count":data[4] ,"price":data[5]}
     return json.dumps(obj)
 
-def getItemAsJsonString(pid):
+def getProductAsJsonString(pid):
     data = datab.getProduct(pid)
     obj = {"pid":data[0],"path":data[5], "name":data[1],"make":data[2],"count":1 ,"price":data[3]}
     return json.dumps(obj)
@@ -252,7 +376,7 @@ def convertBasketResponseToJson(data):
     return obj
     
 
-TTL = datetime.timedelta(days = 7)
-
+TTLUser = datetime.timedelta(days = 7)
+TTLAdmin = datetime.timedelta(days = 1)
 if __name__ == "__main__":
     app.run()
