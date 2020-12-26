@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}Account{% endblock %}
 {% block header %}
 <h2>Account page</h2>
 {% endblock %}
 {% block content %}
 <p>This is your account page {{user}}</p>
-<p>here you can change your password</p>
 {% endblock %}
 {% block form %}
 <form action="#" method = "post">
-<p>Enter old password = <input type="password" name= "password"></p>
-<p>Enter new password = <input type="password" name= "password"></p>
-<p><input type="submit" value = "set password"></p>
+<p>Set new password</p>
+<p>Enter old password = <input type="password" name= "oldpassword"></p>
+<p>Enter new password = <input type="password" name= "newpassword"></p>
+<p><input type="submit" value = "set new password"></p>
 </form>
 {% endblock %}

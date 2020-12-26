@@ -20,10 +20,12 @@ function submitRegister()
     if(name <5)
     {
         alert("Username must be more than 4 chars");
+        return;
     }
     if(pw < 5)
     {
         alert("Password must be more than 4 chars");
+        return;
     }
     var basket = localStorage.getItem(cachename);
     if(basket != null && form.elements["basket"] != null)
