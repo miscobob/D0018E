@@ -5,7 +5,7 @@ tables['Accounts'] = (
     '`UserID` int NOT NULL AUTO_INCREMENT,'
     '`UserName` varchar(20) NOT NULL,'
     '`Email` varchar(45) NOT NULL,'
-    '`Password` varchar(50) NOT NULL,'
+    '`Password` varbinary(50) NOT NULL,'
     '`AccessLevel` varchar(10) DEFAULT NULL,'
     'PRIMARY KEY (`UserID`),'
     'UNIQUE KEY `UserName_UNIQUE` (`UserName`),'
