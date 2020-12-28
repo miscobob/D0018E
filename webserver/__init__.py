@@ -74,11 +74,11 @@ def register():
         email = request.form["email"]
         password = request.form["password"]
         if re.findall("[\W]",username) or len(username)<5:
-            return render_template('register.html', error = "No whitespace or special are aloud in user name and must be longer then 4 characters")
+            return render_template('register.html', error = "No whitespace or special characters are allowed in user name and must be longer than 4 characters")
         if not re.match("^[\w]+([\w](\-|\_|\.))*[\w]+@[\w]+((\-|\_|\.)*[\w]+)*\.[\w]+$", email):
             return render_template('register.html', error = "Please submit a valid email address")
         if re.findall("[\s]", password) or len(password)<5:
-            return render_template('register.hmtl', error = "No whitespace are aloud in password and must be longer then 4 characters")
+            return render_template('register.hmtl', error = "No whitespace are allowed in password and must be longer than 4 characters")
         if datab.hasUserWith(username = username, email = email):
            return render_template('register.html', error = "User name or email is already used by other account")
         datab.regUser(username, email, password)
@@ -245,7 +245,7 @@ def adminProducts():
     return redirect('/admin/login')
 
 
-@app.route('/products/<int:pid>')
+@app.route('/products/<int:pid>', methods = ["POST", "GET"])
 def productPage(pid):
     """
     Route to product page
