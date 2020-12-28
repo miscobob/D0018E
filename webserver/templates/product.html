@@ -6,7 +6,19 @@
 <h2>Product {{pname}}</h2>
 {% endblock %}
 {% block content %}
-<p>This is the product page for {{pname}} made by {{pmake}}<p>
+<p>This is the product page for {{pname}} made by {{pmake}}</p>
 {% endblock %}
 {% block form %}
+<form action="#" method="post">
+	<p>
+	<label for="1">1</label>
+	<input type="radio" id="1" name="rating" value="1">
+	<input type="radio" id="2" name="rating" value="2">
+	<input type="radio" id="3" name="rating" value="3">
+	<input type="radio" id="4" name="rating" value="4">
+	<input type="radio" id="5" name="rating" value="5">
+	<label for="5">5</label>
+	<input type="submit" value="Submit">
+	</p>
+</form>
 {% endblock %}
