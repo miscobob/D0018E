@@ -369,9 +369,9 @@ def getProductsJSON():
     dic["products"] = []
 
     for i in data:
-        obj = {"pid":i[0],"path":i[5], "name":i[1],"make":i[2],"count":1 ,"price":i[3]}
+        obj = {"pid":i[0],"path":i[5], "name":i[1],"make":i[2],"stock":1 ,"price":i[3]}
         dic["products"].append(obj)
-    return json.dumps(obj)
+    return json.dumps(dic)
 
 def getBasketAsJsonString(userid):
     basket = datab.getBasket(userid)
