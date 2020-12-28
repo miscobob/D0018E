@@ -28,7 +28,7 @@ def favicon():
     return send_from_directory("images", "favicon.ico")
 
 @app.route('/null')
-def favicon():
+def defaultImage():
     return send_from_directory("images", "favicon.ico")
 
 @app.route('/login', methods = ["POST","GET"])
