@@ -17,14 +17,14 @@ function submitRegister()
             form.reset();
         }
     }
-    if(name <5)
+    if(name < 5 && name > 13)
     {
-        alert("Username must be more than 4 chars");
+        alert("Username must be between 5 and 12 chars");
         return;
     }
-    if(pw < 5)
+    if(pw < 5 && pw > 13)
     {
-        alert("Password must be more than 4 chars");
+        alert("Password must be between 5 and 12 chars");
         return;
     }
     xhttp.open('POST', "/admin/registerEmployee");
