@@ -9,4 +9,12 @@
 <p>This is the product page for {{pname}} made by {{pmake}}<p>
 {% endblock %}
 {% block form %}
+<form action="#" method="post">
+	<input type="radio" id="1" name="rating" value="1">
+	<input type="radio" id="2" name="rating" value="2">
+	<input type="radio" id="3" name="rating" value="3">
+	<input type="radio" id="4" name="rating" value="4">
+	<input type="radio" id="5" name="rating" value="5">
+	<button type="button">Submit</button>
+</form>
 {% endblock %}
