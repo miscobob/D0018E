@@ -27,6 +27,10 @@ def admin():
 def favicon():
     return send_from_directory("images", "favicon.ico")
 
+@app.route('/null')
+def favicon():
+    return send_from_directory("images", "favicon.ico")
+
 @app.route('/login', methods = ["POST","GET"])
 def login():
     if isUser(session.get("UserID")):
