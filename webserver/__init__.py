@@ -276,14 +276,15 @@ def loadBasket():
 
 @app.route("/loadProducts")
 def loadProducts():
-    s = ('{  "products":['
-         '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
-		 '{"pid":"1", "path":"/images/paul_senior.png", "name":"Trampcykel", "make":"Faze Clan"},'
-         '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
+    s = getProductsJSON()
+    #s = ('{  "products":['
+    #     '{"pid":"64852", "path":"/images/image1.png", "name":"product1", "make":"maker"},'
+	#	 '{"pid":"1", "path":"/images/paul_senior.png", "name":"Trampcykel", "make":"Faze Clan"},'
+    #     '{"pid":"64352", "path":"/images/image2.png", "name":"product2", "make":"maker"}]}')
     return s
-    if session.get("UserID"):
-        return ""
-    return None
+    #if session.get("UserID"):
+    #    return ""
+    #return None
 
 #@app.route("/addProduct")
 #def addProduct():
@@ -360,6 +361,16 @@ def getBasketItemAsJsonString(userid, pid):
 def getProductAsJsonString(pid):
     data = datab.getProduct(pid)
     obj = {"pid":data[0],"path":data[5], "name":data[1],"make":data[2],"count":1 ,"price":data[3]}
+    return json.dumps(obj)
+
+def getProductsJSON():
+    data = datab.getProducts()
+    dic = {}
+    dic["products"] = []
+
+    for i in data:
+        obj = {"pid":i[0],"path":i[5], "name":i[1],"make":i[2],"count":1 ,"price":i[3]}
+        dic["products"].append(obj)
     return json.dumps(obj)
 
 def getBasketAsJsonString(userid):
