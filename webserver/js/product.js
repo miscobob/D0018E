@@ -33,17 +33,8 @@ function generateHTML(reviewlist)
         var row = document.createElement("DIV");
         row.className = "review";
 
-        /*var image = document.createElement("AMP-IMG");
-        image.setAttribute("height", "9");
-        image.setAttribute("width", "16");
-        image.setAttribute("src", products[i].path);
-        image.setAttribute("layout", "responsive");
-        image.setAttribute("class", "fixedsizedItem");
-        row.appendChild(image)*/
-
         var text = document.createElement("P");
-        text.innerHTML = "Comment by " + reviews[i].UserID + '<br><b style="text-align:center;">' + reviews[i].Comment + '</b><br><b style="text-align:center;">Rating ' + reviews[i].Rating + "/5</b>";
-        text.setAttribute("class","item");
+        text.innerHTML = "Comment by " + reviews[i].UserID + '<br><b>' + reviews[i].Comment + '</b><br><b>Rating ' + reviews[i].Rating + "/5</b>";
         row.appendChild(text);
 
         table.appendChild(row);
