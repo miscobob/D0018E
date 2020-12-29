@@ -13,6 +13,7 @@ window.onunload= loadReviews({{pname}});
 <p>This is the product page for {{pname}} made by {{pmake}}</p>
 {% endblock %}
 {% block form %}
+{% if user %}
 <form action="#" method="post">
 	<p style="text-align:left;">
 	<textarea id="0" name="textarea" rows="10" cols="50"></textarea><br><br>
@@ -26,12 +27,9 @@ window.onunload= loadReviews({{pname}});
 	<input type="submit" value="Submit">
 	</p>
 </form>
+{% endif %}
 {% endblock %}
-{% if user %}
 {% block after %}
 <div id = "reviewArea" class="review">
 </div>
 {% endblock %}
-{% endif %}
-
-
