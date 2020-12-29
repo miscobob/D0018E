@@ -295,6 +295,7 @@ def loadProducts():
 @app.route("/loadReviews/<int:pid>")
 def loadReviews(pid):
     s = getReviewsJSON(pid)
+    return s
 
 @app.route("/admin/addProduct" , methods = ["POST"])
 def addProduct():
