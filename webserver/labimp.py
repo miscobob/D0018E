@@ -57,7 +57,7 @@ class databas:
         Update Table with new info, need to be manually commited.
         """
         self.testConnection()
-        if !isinstance(setValue, str):
+        if not isinstance(setValue, str):
             statement ="UPDATE "+table+" SET "+setCol+" = "+str(setValue)
         else:
             statement ="UPDATE "+table+" SET "+setCol+" = '"+setValue+"'"
