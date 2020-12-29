@@ -250,9 +250,13 @@ def productPage(pid):
     """
     Route to product page
     """
+
+    if request.method == "POST":
+        
     if isUser(session.get("UserID"), TTLUser):
         return render_template('product.html', pname = pid, user=True)
     return render_template('product.html', pname = pid)
+        
 
 """
 Return javascript file
@@ -288,10 +292,9 @@ def loadProducts():
     #    return ""
     #return None
 
-@app.route("/loadReviews")
-def loadReviews():
-    s = getReviewsJSON()
-    return s
+@app.route("/loadReviews/<int:pid>")
+def loadReviews(pid):
+    s = getReviewsJSON(pid)
 
 @app.route("/admin/addProduct" , methods = ["POST"])
 def addProduct():
@@ -398,8 +401,8 @@ def getProductsJSON():
         dic["products"].append(obj)
     return json.dumps(dic)
 
-def getReviewsJSON():
-    data = datab.getReviews()
+def getReviewsJSON(pid):
+    data = datab.getReviews(pid)
     dic = {}
     dic["reviews"] = []
 

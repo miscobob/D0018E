@@ -363,8 +363,8 @@ class labdb:
         answer = self.db.select("Products")
         return answer
 
-    def getReviews(self):
-        answer = self.db.select("Review")
+    def getReviews(self, pid):
+        answer = self.db.select("Review t1", "ProductID, Username, Rating, Comment", ["Accounts t2"], ["t1.UserID = t2.UserID"], where = self.matchPid, PID = pid)
         return answer
 
     def getProduct(self, pid):

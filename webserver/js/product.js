@@ -1,9 +1,9 @@
-async function loadReviews()
+async function loadReviews(pid)
 {
-        loadFromServer();
+        loadFromServer(pid);
 }
 
-async function loadFromServer()
+async function loadFromServer(pid)
 {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange =  function()
@@ -19,7 +19,7 @@ async function loadFromServer()
 
         }
     }
-    xhttp.open("GET", "/loadReviews", true);
+    xhttp.open("GET", "/loadReviews/" + pid, true);
     xhttp.send();
 }
 

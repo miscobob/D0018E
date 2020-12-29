@@ -3,7 +3,7 @@
 {% block jsfiles %}
 <script src="/js/product.js"></script>
 <script>
-window.onunload= loadReviews();
+window.onunload= loadReviews({{pname}});
 </script>
 {% endblock %}
 {% block header %}
