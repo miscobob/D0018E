@@ -363,6 +363,10 @@ class labdb:
         answer = self.db.select("Products")
         return answer
 
+    def getReviews(self):
+        answer = self.db.select("Review")
+        return answer
+
     def getProduct(self, pid):
         answer = self.db.select("Products", where=self.matchPid, PID = pid)
         if answer:
