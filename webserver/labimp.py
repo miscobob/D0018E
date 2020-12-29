@@ -364,6 +364,7 @@ class labdb:
         return answer
 
     def postReview(self, pid, uid, rating, comment):
+        uid = self.decrypt(uid)
         if comment:
             values = "'%s', '%s', '%s', '%s'" %(pid, uid, rating, comment)
         else:
