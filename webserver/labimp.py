@@ -58,7 +58,7 @@ class databas:
         """
         self.testConnection()
         if isinstance(setValue, int):
-            statement ="UPDATE "+table+" SET "+setCol+" = "+setValue
+            statement ="UPDATE "+table+" SET "+setCol+" = "+str(setValue)
         else:
             statement ="UPDATE "+table+" SET "+setCol+" = '"+setValue+"'"
         if where:
