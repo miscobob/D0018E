@@ -42,7 +42,7 @@ function generateHTML(reviewlist)
         row.appendChild(image)*/
 
         var text = document.createElement("P");
-        text.innerHTML = "By " + reviews[i].UserID + "<br>" + reviews[i].Comment + "<br>"+ reviews[i].Rating;
+        text.innerHTML = "Comment by " + reviews[i].UserID + "<br><b style="text-align:center;">" + reviews[i].Comment + "</b><br><b style="text-align:center;">Rating "+ reviews[i].Rating + "/5</b>";
         text.setAttribute("class","item");
         row.appendChild(text);
 
