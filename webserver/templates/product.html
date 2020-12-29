@@ -27,9 +27,11 @@ window.onunload= loadReviews({{pname}});
 	</p>
 </form>
 {% endblock %}
+{% if user %}
 {% block after %}
 <div id = "reviewArea" class="review">
 </div>
 {% endblock %}
+{% endif %}
 
 
