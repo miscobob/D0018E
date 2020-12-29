@@ -290,7 +290,7 @@ def loadProducts():
 
 @app.route("/loadReviews")
 def loadReviews():
-	s = getReviewsJSON()
+    s = getReviewsJSON()
     return s
 
 @app.route("/admin/addProduct" , methods = ["POST"])
