@@ -251,7 +251,7 @@ def productPage(pid):
     Route to product page
     """
 
-    if request.method == "POST":
+#    if request.method == "POST":
         
     if isUser(session.get("UserID"), TTLUser):
         return render_template('product.html', pname = pid, user=True)
