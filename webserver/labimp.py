@@ -372,12 +372,14 @@ class labdb:
             self.db.update("Review", "Rating", rating, where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid)
             if comment:
                 self.db.update("Review", "Comment", comment, where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid)
+            self.db.commit()
             return
         if comment:
             values = "'%s', '%s', '%s', '%s'" %(pid, uid, rating, comment)
         else:
             values = "'%s', '%s', '%s', NULL" %(pid, uid, rating)
         self.db.insertIntoTable("Review", values)
+        self.db.commit()
 
     def getReviews(self, pid):
         answer = self.db.select("Review t1", "ProductID, Username, Rating, Comment", ["Accounts t2"], ["t1.UserID = t2.UserID"], where = self.matchPid, PID = pid)
