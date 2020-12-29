@@ -34,8 +34,15 @@ function generateHTML(reviewlist)
         row.className = "review";
 
         var text = document.createElement("P");
-        text.innerHTML = "Comment by " + reviews[i].UserID + '<br><b>' + reviews[i].Comment + '</b><br><b>Rating ' + reviews[i].Rating + "/5</b>";
-        row.appendChild(text);
+		if(reviews[i].Comment)
+		{
+			text.innerHTML = "Review by " + reviews[i].UserID + '<br><b>' + reviews[i].Comment + '</b><br><b>Rating ' + reviews[i].Rating + "/5</b>";
+        }
+		else
+		{
+			text.innerHTML = "Review by " + reviews[i].UserID + '<br><br><b>Rating ' + reviews[i].Rating + "/5</b>";
+		}
+		row.appendChild(text);
 
         table.appendChild(row);
     }
