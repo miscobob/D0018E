@@ -372,6 +372,7 @@ class labdb:
             self.db.update("Review", "Rating", rating, where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid)
             if comment:
                 self.db.update("Review", "Comment", comment, where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid)
+            return
         if comment:
             values = "'%s', '%s', '%s', '%s'" %(pid, uid, rating, comment)
         else:
