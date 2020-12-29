@@ -29,6 +29,7 @@
 {% block jsfiles %}
 <script src="/js/basket.js"></script>
 <script src="/js/products.js"></script>
+<script src="/js/adminProducts.js"></script>
 <script>
 window.onunload= loadProducts();
 </script>
@@ -37,9 +38,19 @@ window.onunload= loadProducts();
 <h2>Products</h2>
 {% endblock %}
 {% block content %}
-<p>Items shown here are available for purchase<p>
+<p>Items shown here are available for purchase</p>
 {% endblock %}
 {% block form %}
+<form id="newproduct" onsubmit="addProduct()">
+    <p>Add new product</p>
+    <p>name:<input type="text" name="name"></p>
+    <p>make:<input type="text" name="make"></p>
+    <p>price:<input type="number" name="price" value="1" min="1"></p>
+    <p>stock:<input type="number" name="stock" value="0" min="0"></p>
+    <p><input type="button" onclick="addProduct()" value="submit"></p>
+    <!--<input type="text" name="name">-->
+</form>
+<p id="response"></p>
 <div id = "productsArea" class="products">
 </div>
 {% endblock %}

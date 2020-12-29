@@ -73,16 +73,15 @@ def register():
         username = request.form["username"]
         email = request.form["email"]
         password = request.form["password"]
-        if re.findall("[\W]",username) or len(username)<5:
-            return render_template('register.html', error = "No whitespace or special characters are allowed in user name and must be longer than 4 characters")
+        if len(username) < 5 or len(username) > 13 or re.findall("[\W]",username):
+            return render_template('register.html', error = "Username must have between 5 and 12 characters and contain no whitespaces or special characters")
+        if len(password) < 5 or len(password) > 13 or re.findall("[\s]", password):
+            return render_template('register.hmtl', error = "Password must have between 5 and 12 characters and contain no whitespaces")
         if not re.match("^[\w]+([\w](\-|\_|\.))*[\w]+@[\w]+((\-|\_|\.)*[\w]+)*\.[\w]+$", email):
             return render_template('register.html', error = "Please submit a valid email address")
-        if re.findall("[\s]", password) or len(password)<5:
-            return render_template('register.hmtl', error = "No whitespace are allowed in password and must be longer than 4 characters")
         if datab.hasUserWith(username = username, email = email):
            return render_template('register.html', error = "User name or email is already used by other account")
         datab.regUser(username, email, password)
-        
         return redirect(url_for('login',fromRegister=True))
     return render_template('register.html')
 
@@ -117,8 +116,8 @@ def setNewPassword(htmlFile, username, admin = False):
     """
     oldpassword = request.form["oldpassword"]
     newpassword = request.form["newpassword"]
-    if re.findall("[\s]", newpassword) or len(newpassword)<5:
-        return render_template(htmlFile, user = username, error="password must have atleast 5 chars and no whitespaces", admin = admin)
+    if len(newpassword) < 5 or len(newpassword) > 13 or re.findall("[\s]", newpassword):
+        return render_template(htmlFile, user = username, error="Password must have between 5 and 12 chars and contain no whitespaces", admin = admin)
     if datab.updatePassword(session.get("UserID"),oldpassword,newpassword):
         return render_template(htmlFile, user = username, message="password updated", admin = admin)
     return render_template(htmlFile, user = username, error="password incorrect", admin = admin)
@@ -138,12 +137,12 @@ def registerEmployee():
             password = request.form["password"]
             accessLevel = tables.AccountAccess(request.form["accesslevel"])
             
-        if re.findall("[\W]",username) or len(username)<5:
+        if len(username) < 5 or len(username) > 13 or re.findall("[\W]",username):
             return "<h3>No whitespace or special are aloud in user name and must be longer then 4 characters</h3>"
+        if len(password) < 5 or len(password) > 13 or re.findall("[\s]", password):
+            return "<h3>Password must have between 5 and 12 chars and contain no whitespaces</h3>"
         if not re.match("^[\w]+([\w](\-|\_|\.))*[\w]+@[\w]+((\-|\_|\.)*[\w]+)*\.[\w]+$", email):
             return "<h3>Please submit a valid email address</h3>"
-        if re.findall("[\s]", password) or len(password)<5:
-            return "<h3>No whitespace are aloud in password and must be longer then 4 characters</h3>"
         if datab.hasUserWith(username = username, email = email):
             return "<h3>User name or email is already used by other account</h3>"
         if accessLevel is tables.AccountAccess.ADMIN:
@@ -155,6 +154,7 @@ def registerEmployee():
         return "<p>New user employee has been registered</p>"
         
     return redirect("/")
+
 """
 Route to shopping basket
 """
@@ -272,10 +272,8 @@ def loadBasket():
     """
     Should load basket from database into cookies
     """
-    if session.get("UserID"):
-        username = getUserName()
-        if(username):
-            return getBasketAsJsonString(session["UserID"])
+    if isUser(session.get("UserID")):
+        return getBasketAsJsonString(session["UserID"])
     return {}
 
 @app.route("/loadProducts")
@@ -290,10 +288,28 @@ def loadProducts():
     #    return ""
     #return None
 
-#@app.route("/addProduct")
-#def addProduct():
-#kör makeProduct.js
-#lägg till produkt i databas
+@app.route("/admin/addProduct" , methods = ["POST"])
+def addProduct():
+    if request.method == "POST" and isEmployee(session.get("UserID"), TTLAdmin):
+        obj = request.get_json()
+        if obj:
+            pname = obj["name"]
+            pmake = obj["make"]
+            price = obj["price"]
+            stock = obj["stock"]
+            image = obj.get("path")
+        else:
+            pname = request.form["name"]
+            pmake = request.form["make"]
+            price = request.form["price"]
+            stock = request.form["stock"]
+            image = request.form.get("path")
+        if datab.hasProduct(pname = pname, pmake=pmake):
+            return "<h3>Product with that name already exist for that brand</h3>"
+        else:
+            datab.addNewProduct(pname, pmake, price, stock, image)
+            return "<h4>A new product has been added</h4>"
+    return redirect("/")
 
 
 def validateUser(username, password):

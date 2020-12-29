@@ -45,11 +45,11 @@ class databas:
                 statement += " INNER JOIN " +joinTables[i] + " ON " + conditions[i]
         if where:
             statement+= " WHERE "+ where
-        #print(statement%kwargs)
+        print(statement%kwargs)
         self.dbCursor.execute(statement, kwargs)
         for row in self.dbCursor:
             tbl.append(row)
-        #print("sql response",tbl)
+        print("sql response",tbl)
         return tbl
 
     def update(self, table, setCol, setValue, where = "", **kwargs):
@@ -169,6 +169,8 @@ class labdb:
         self.matchStatus = "Status = %(status)s"
         self.matchPid = "ProductID = %(PID)s"
         self.matchItem = "Item = %(Item)s"
+        self.matchName = "Name = %(Name)s"
+        self.matchMake = "Make = %(Make)s"
         self.matchAccess = "AccessLevel = %(Access)s"
         self.matchDoubleAccess = "(AccessLevel = %(Access1)s or AccessLevel = %(Access2)s)"
         self.matchTransaction = "TransactionNumber = %(TransactionNumber)s"
@@ -346,6 +348,9 @@ class labdb:
         return self.getBasketCount(userid)
 
     def addNewProduct(self, name, make, price, stock = 0, imagepath = "") :
+        """
+        Adds a product to database
+        """
         if imagepath:
             values = "'%s', '%s', '%s', '%s', '%s'" % (name, make, price, stock, imagepath)
             self.db.insertIntoTable(tables.productsInsertImage, values)
@@ -364,8 +369,13 @@ class labdb:
             return answer[0]
         return ()
 
-    def hasProduct(self, pid):
-        return bool(self.getProduct(pid))
+    def hasProduct(self, pid = 0, pname = "", pmake = ""):
+        if not pid and not (pname and pmake):
+            return True
+        if pid:
+            return bool(self.db.select("Products", where=self.matchPid, PID = pid))
+        else:
+            return bool(self.db.select("Products", where=self.matchName + " and " + self.matchMake, Name = pname, Make = pmake))
 
     def setStock(self, pid, stock):
         """
