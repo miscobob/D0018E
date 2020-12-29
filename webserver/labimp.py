@@ -365,6 +365,10 @@ class labdb:
 
     def postReview(self, pid, uid, rating, comment):
         uid = self.decrypt(uid)
+        if self.db.select("Review", where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid):
+            self.db.update("Review", "Rating", rating, where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid)
+            if comment:
+                self.db.update("Review", "Comment", comment, where = self.matchPid + " and " + self.matchUserID, PID = pid, UserID = uid)
         if comment:
             values = "'%s', '%s', '%s', '%s'" %(pid, uid, rating, comment)
         else:
