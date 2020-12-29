@@ -288,6 +288,10 @@ def loadProducts():
     #    return ""
     #return None
 
+@app.route("/loadReviews")
+def loadReviews():
+	s = getReviewsJSON()
+
 @app.route("/admin/addProduct" , methods = ["POST"])
 def addProduct():
     if request.method == "POST" and isEmployee(session.get("UserID"), TTLAdmin):
@@ -391,6 +395,16 @@ def getProductsJSON():
     for i in data:
         obj = {"pid":i[0],"path":i[5], "name":i[1],"make":i[2],"stock":1 ,"price":i[3]}
         dic["products"].append(obj)
+    return json.dumps(dic)
+
+def getReviewsJSON():
+    data = datab.getReviews()
+    dic = {}
+    dic["reviews"] = []
+
+    for i in data:
+        obj = {"ProductID":i[0], "UserID":i[1], "Rating":i[2], "Comment":i[3]}
+        dic["reviews"].append(obj)
     return json.dumps(dic)
 
 def getBasketAsJsonString(userid):

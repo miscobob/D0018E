@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Product {{pname}}{% endblock %}
 {% block jsfiles %}
+<script src="/js/product.js"></script>
+<script>
+window.onunload= loadReviews();
+</script>
 {% endblock %}
 {% block header %}
 <h2>Product {{pname}}</h2>
@@ -23,3 +27,9 @@
 	</p>
 </form>
 {% endblock %}
+{% block after %}
+<div id = "reviewArea" class="review">
+</div>
+{% endblock %}
+
+
