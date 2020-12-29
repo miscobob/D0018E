@@ -49,6 +49,19 @@ tables['TransactionData'] = (
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
     )
 
+tables['Review'] = (
+    '`Review` ('
+    '`ProductID` int NOT NULL,'
+    '`UserID` int NOT NULL,'
+    '`Rating` tinyint(1) NOT NULL,'
+    '`Comment` varchar(300) DEFAULT NULL,'
+    'UNIQUE KEY `Prod_Review` (`ProductID`,`UserID`),'
+    'KEY `Productid_rating_idx` (`ProductID`),'
+    'KEY `UserID_rating_idx` (`UserID`),'
+    'CONSTRAINT `ProductID_rating` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`),'
+    'CONSTRAINT `UserID_rating` FOREIGN KEY (`UserID`) REFERENCES `accounts` (`UserID`)'
+    ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
+)
 
 transaction = (
     '`Transaction%(UserID)s` ('
