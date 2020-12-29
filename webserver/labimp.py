@@ -57,7 +57,10 @@ class databas:
         Update Table with new info, need to be manually commited.
         """
         self.testConnection()
-        statement ="UPDATE "+table+" SET "+setCol+" = '"+setValue+"'"
+        if isinstance(setValue, int):
+            statement ="UPDATE "+table+" SET "+setCol+" = "+setValue
+        else:
+            statement ="UPDATE "+table+" SET "+setCol+" = '"+setValue+"'"
         if where:
             statement += " WHERE "+where
         #print(statement % kwargs)
