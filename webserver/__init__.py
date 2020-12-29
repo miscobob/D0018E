@@ -251,8 +251,12 @@ def productPage(pid):
     Route to product page
     """
 
-#    if request.method == "POST":
-        
+    if request.method == "POST":
+        if isUser(session.get("UserID"), TTLUser):
+            rating = int(request.form["rating"])
+            comment = str(request.form["textarea"])
+            datab.postReview(pid, session.get("UserID"), rating, comment)
+
     if isUser(session.get("UserID"), TTLUser):
         return render_template('product.html', pname = pid, user=True)
     return render_template('product.html', pname = pid)

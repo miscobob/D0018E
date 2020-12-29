@@ -363,6 +363,13 @@ class labdb:
         answer = self.db.select("Products")
         return answer
 
+    def postReview(self, pid, uid, rating, comment):
+        if comment:
+            values = "'%s', '%s', '%s', '%s'" %(pid, uid, rating, comment)
+        else:
+            values = "'%s', '%s', '%s', NULL" %(pid, uid, rating)
+        self.db.insertIntoTable("Review", values)
+
     def getReviews(self, pid):
         answer = self.db.select("Review t1", "ProductID, Username, Rating, Comment", ["Accounts t2"], ["t1.UserID = t2.UserID"], where = self.matchPid, PID = pid)
         return answer
