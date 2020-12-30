@@ -262,6 +262,23 @@ def productPage(pid):
     return render_template('product.html', pname = pid)
         
 
+@app.route("/loadTransactions", methods = ["GET"])
+def loadTransactions():
+    if request.method == "GET":
+        if isUser(session.get("UserID")):
+            transactions = datab.loadTransactions(session["UserID"])
+            obj = {}
+            for p in transactions:
+                if(obj.get(str(p[0])+" "+p[2]+" "+str(p[1]))):
+                    obj[str(p[0])+" "+p[2]+" "+str(p[1])].append({"name":p[3],"make":p[4],"count":p[5],"price":p[6]})
+                else:
+                    obj[str(p[0])+" "+p[2]+" "+str(p[1])] = [{"name":p[3],"make":p[4],"count":p[5],"price":p[6]}]
+            #print(obj)
+            return obj
+        return ""
+    else:
+        return ""
+
 """
 Return javascript file
 """

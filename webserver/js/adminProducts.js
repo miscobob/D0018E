@@ -26,7 +26,7 @@ function addProduct()
         alert("Please give name");
         return;
     }
-    xhttp.open('POST', "/admin/addProduct");
+    xhttp.open('POST', "/admin/addProduct" ,true);
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
     var data = "{\"name\":\""+name.value+"\",\"make\":\""+make.value
                 +"\",\"price\":\""+price.value+"\",\"stock\":\""+stock.value+"\"}";

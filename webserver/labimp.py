@@ -169,7 +169,7 @@ class labdb:
         self.matchUserName = 'UserName = %(UserName)s'
         self.matchPassword = 'Password = %(Password)s'
         self.matchEmail = "Email = %(Email)s"
-        self.matchStatus = "Status = %(status)s"
+        self.matchStatus = "Status = %(Status)s"
         self.matchPid = "ProductID = %(PID)s"
         self.matchItem = "Item = %(Item)s"
         self.matchName = "Name = %(Name)s"
@@ -297,12 +297,12 @@ class labdb:
         Adds a product to a new basket transaction or to existing basket
         """
         userid = self.crypto.decrypt(userid).decode("utf-8")
-        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, status = tables.TransactionState.BASKET.value, UserID = userid)
+        transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, Status = tables.TransactionState.BASKET.value, UserID = userid)
         if not transaction: # check if new basket needed
             values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET.value)
             self.db.insertIntoTable(tables.transactionsInsert, values)
             self.db.commit()
-            transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, status = tables.TransactionState.BASKET.value, UserID = userid)
+            transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, Status = tables.TransactionState.BASKET.value, UserID = userid)
             transnr = transaction[0][0]
         else:
             transnr = transaction[0][0]
@@ -338,17 +338,25 @@ class labdb:
         conditions = ["t1.Item = t2.ProductID", "t1.TransactionNumber=t3.TransactionNumber"]
         if pid:
             where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus + " and " +"t1."+self.matchItem
-            answer = self.db.select("TransactionData" +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value, Item = pid)
+            answer = self.db.select("TransactionData" +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, Status = tables.TransactionState.BASKET.value, Item = pid)
             if answer:
                 return answer[0]
             return ""
         else:
             where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus
-            answer = self.db.select("TransactionData" +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, status = tables.TransactionState.BASKET.value)
+            answer = self.db.select("TransactionData" +" t1", col = col, joinTables = joinTables, conditions = conditions, where = where, UserID = userid, Status = tables.TransactionState.BASKET.value)
             return answer
 
     def getBasket(self, userid):
         return self.getBasketCount(userid)
+
+    def loadTransactions(self,userid):
+        userid = self.decrypt(userid)
+        col = "t1.TransactionNumber, DateTime, Status, Name, Make, Count, Price"
+        joinTables = ["Transactions t2", "Products t3"]
+        conditions = ["t1.TransactionNumber = t2.TransactionNumber", "t1.Item = t3.ProductID"]
+        where = "t2."+self.matchUserID + " and (t2." +self.matchStatus%{"Status":"%(Status1)s"}+ " or t2." + self.matchStatus%{"Status":"%(Status2)s"}+")"
+        return self.db.select("TransactionData t1", col, joinTables, conditions, where, UserID= userid, Status1=tables.TransactionState.DONE.value, Status2=tables.TransactionState.WAIT.value)
 
     def addNewProduct(self, name, make, price, stock = 0, imagepath = "") :
         """
@@ -433,15 +441,15 @@ if __name__ == "__main__" and testing:
         user = "testuser"
         email = "testmail@mail.com"
         pw = "pw"
-        #db.regUser(user, email, pw)
-        #db.addNewProduct("cykel","disney",999, imagepath="/images/image1.png")
+        db.regUser(user, email, pw)
+        db.addNewProduct("cykel","disney",999, imagepath="/images/image1.png")
         print(db.hasUserWith(user, email))
         print(db.hasUserWith(user))
         print(db.hasUserWith(email = email))
         userid = db.validateUser(user, pw)
         print(db.getUserName(userid))
         print(db.addToCart(userid, 1, 1))
-        #print(db.addToCart(userid, 2, 1))
+        print(db.addToCart(userid, 2, 1))
         print(db.getBasket(userid))
         data = db.getProduct(1)
         obj = {"pid":data[0],"path":data[5], "name":data[2],"make":data[3],"count":1 ,"price":data[4]}

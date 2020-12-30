@@ -27,7 +27,7 @@ function submitRegister()
         alert("Password must be between 5 and 12 chars");
         return;
     }
-    xhttp.open('POST', "/admin/registerEmployee");
+    xhttp.open('POST', "/admin/registerEmployee", true);
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
     var data = "{\"username\":\""+name.value+"\",\"password\":\""+pw.value
                 +"\",\"email\":\""+email.value+"\",\"accesslevel\":\""+accesslevel.value+"\"}";
