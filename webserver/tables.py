@@ -29,7 +29,7 @@ tables['Transactions'] = (
     '`Transactions` ('
     '`TransactionNumber` int NOT NULL AUTO_INCREMENT,'
     '`UserID` int NOT NULL,'
-    '`DateTime` date DEFAULT NULL,'
+    '`DateTime` datetime DEFAULT NULL,'
     '`Status` varchar(20) NOT NULL,'
     'PRIMARY KEY (`TransactionNumber`),'
     'KEY `UserID_idx` (`UserID`),'
@@ -62,18 +62,6 @@ tables['Review'] = (
     'CONSTRAINT `UserID_rating` FOREIGN KEY (`UserID`) REFERENCES `Accounts` (`UserID`)'
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
 )
-
-transaction = (
-    '`Transaction%(UserID)s` ('
-    '`TransactionNumber` int NOT NULL,'
-    '`Item` int NOT NULL,'
-    '`Count` int NOT NULL,'
-    'KEY `TransactionNumber_idx` (`TransactionNumber`),'
-    'KEY `ProductId_idx` (`Item`),'
-    'CONSTRAINT `ProductId%(UserID)s` FOREIGN KEY (`Item`) REFERENCES `Products` (`ProductID`),'
-    'CONSTRAINT `TransactionNumber%(UserID)s` FOREIGN KEY (`TransactionNumber`) REFERENCES `Transactions` (`TransactionNumber`)'
-    ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci'
-    )
 
 
 
