@@ -36,8 +36,9 @@ class databas:
     Where string as element in kwargs and key to that element is the tag for where
     that string should be placed
     """
-    def select(self, table,  col = '*',joinTables = [], conditions = [], where = "" , **kwargs):
+    def select(self, table,  col = '*',joinTables = [], conditions = [], where = "", **kwargs):
         self.testConnection()
+        commit = not self.dbConnection.in_transaction 
         tbl = []
         statement ="SELECT "+col+" FROM "+table
         if(len(joinTables) == len(conditions)):
@@ -50,6 +51,8 @@ class databas:
         for row in self.dbCursor:
             tbl.append(row)
         print("sql response",tbl)
+        if commit:
+            self.dbConnection.commit()  # so it does not lock it self into a specific state of db
         return tbl
 
     def update(self, table, setCol, setValue, where = "", **kwargs):
@@ -135,10 +138,12 @@ class databas:
     """
     Start a transaction
     """
-    def transaction(self):
+    def startTransaction(self):
+        self.dbConnection.start_transaction()
         return
     
     def rollback(self):
+        self.dbConnection.rollback()
         return
 
         
@@ -433,11 +438,14 @@ class labdb:
         """
         self.db.close()
 
-"""
+
 testing = True
 if __name__ == "__main__" and testing:
     db = labdb()
     if True:
+        db.db.startTransaction()
+        db.db.commit()
+        """
         user = "testuser"
         email = "testmail@mail.com"
         pw = "pw"
@@ -455,7 +463,7 @@ if __name__ == "__main__" and testing:
         obj = {"pid":data[0],"path":data[5], "name":data[2],"make":data[3],"count":1 ,"price":data[4]}
         print(obj)
         db.close()
+        """
     else:
         print("except")
         db.close()
-"""

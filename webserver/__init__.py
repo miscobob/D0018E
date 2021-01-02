@@ -87,8 +87,8 @@ def register():
 
 @app.route('/account', methods = ["POST","GET"])
 def account():
-    if isUser(session.get("UserID"), TTLUser):
-        username = getUserName()
+    if answer := isUser(session.get("UserID"), TTLUser):
+        username = answer[1]
         if not username: 
             return redirect("/login")
         if(request.method == "POST"):
@@ -99,7 +99,7 @@ def account():
 
 @app.route('/admin/account', methods = ["POST","GET"])
 def adminAccount():
-    if session.get("UserID") and (answer:= hasAccess(session.get("UserID"), [tables.AccountAccess.MANAGER,tables.AccountAccess.ADMIN],TTLAdmin)):
+    if answer:= isEmployee(session.get("UserID"), TTLAdmin):
         username = answer[1]
         access = answer[0]
         if(request.method == "POST"):
@@ -397,10 +397,14 @@ def getUserName(TTL = 0):
     return username
 
 def isUser(id, TTL = 0):
-    return id and hasAccess(id, [tables.AccountAccess.USER], TTL)
+    if id:
+        return hasAccess(id, [tables.AccountAccess.USER], TTL)
+    return False 
 
 def isEmployee(id, TTL = 0):
-    return id and hasAccess(id, [tables.AccountAccess.ADMIN, tables.AccountAccess.MANAGER], TTL)
+    if id:
+        return hasAccess(id, [tables.AccountAccess.ADMIN, tables.AccountAccess.MANAGER], TTL)
+    return False 
 
 def getBasketItemAsJsonString(userid, pid):
     data = datab.getBasketCount(userid, pid)
