@@ -1,5 +1,5 @@
 from cryptography.fernet import Fernet
-import mysql.connector, os.path
+import mysql.connector, os.path, datetime
 try:
     from . import tables
 except:
@@ -46,13 +46,13 @@ class databas:
                 statement += " INNER JOIN " +joinTables[i] + " ON " + conditions[i]
         if where:
             statement+= " WHERE "+ where
-        print(statement%kwargs)
+        #print(statement%kwargs)
         self.dbCursor.execute(statement, kwargs)
         for row in self.dbCursor:
             tbl.append(row)
-        print("sql response",tbl)
+        #print("sql response",tbl)
         if commit:
-            self.dbConnection.commit()  # so it does not lock it self into a specific state of db
+            self.dbConnection.commit()  # so it does not lock it self into a specific state of dbs
         return tbl
 
     def update(self, table, setCol, setValue, where = "", **kwargs):
@@ -60,15 +60,29 @@ class databas:
         Update Table with new info, need to be manually commited.
         """
         self.testConnection()
-        if not isinstance(setValue, str):
-            statement ="UPDATE "+table+" SET "+setCol+" = "+str(setValue)
+        commit = not self.dbConnection.in_transaction
+        if type(setCol) == list and type(setValue) == list and len(setCol) == len(setValue):
+            statement = "UPDATE "+ table + " SET "
+            for i in range(0,len(setCol)):
+                if not isinstance(setValue[i], str):
+                    statement +=setCol[i]+" = "+str(setValue[i])
+                else:
+                    statement +=setCol[i]+" = '"+setValue[i]+"'"
+                if i<len(setCol)-1:
+                    statement+=", "
         else:
-            statement ="UPDATE "+table+" SET "+setCol+" = '"+setValue+"'"
+            if not isinstance(setValue, str):
+                statement ="UPDATE "+table+" SET "+setCol+" = "+str(setValue)
+            else:
+                statement ="UPDATE "+table+" SET "+setCol+" = '"+setValue+"'"
         if where:
             statement += " WHERE "+where
         #print(statement % kwargs)
         self.dbCursor.execute(statement, kwargs)
-        return self.dbCursor.rowcount
+        rowsupdated = self.dbCursor.rowcount
+        if commit:
+            self.dbConnection.commit()
+        return rowsupdated
 
     def delete(self, table, where):
         """
@@ -140,11 +154,22 @@ class databas:
     """
     def startTransaction(self):
         self.dbConnection.start_transaction()
-        return
     
+    def lockTables(self, tables):
+        lock = ""
+        for i in range(0, len(tables)):
+            lock += " " + tables[i] + " WRITE"
+            if i < (len(tables)-1):
+                lock +=","
+        #print(lock)
+        self.dbCursor.execute("LOCK TABLES" + lock)
+
+    def unlockTables(self):
+        self.dbCursor.execute("UNLOCK TABLES")
+        self.commit()
+
     def rollback(self):
         self.dbConnection.rollback()
-        return
 
         
 class labdb:
@@ -355,6 +380,37 @@ class labdb:
     def getBasket(self, userid):
         return self.getBasketCount(userid)
 
+    def checkout(self, userid):
+        userid = self.decrypt(userid)
+        self.db.startTransaction()
+        self.db.lockTables(["Transactions AS t2", "Products AS t3", "TransactionData AS t1"])
+        joinTables = ["Transactions t2", "Products t3"]
+        conditions = ["t1.TransactionNumber = t2.TransactionNumber", "t1.Item = t3.ProductID"]
+        where = "t2."+self.matchUserID +" and t2."+ self.matchStatus 
+        answer = self.db.select("TransactionData t1", "t1.TransactionNumber, Item, InStock, Count", joinTables, conditions, where, UserID = userid, Status = tables.TransactionState.BASKET.value)
+        if not answer:
+            self.db.rollback()
+            self.db.unlockTables()
+            self.db.commit()
+            return "Basket empty", 0
+        for prod in answer:
+            stockleft = prod[2]-prod[3]
+            if stockleft < 0 or not self.setStock(prod[1],stockleft, " t3"):
+                #("rollback not in stock")
+                self.db.rollback()
+                self.db.unlockTables()
+                self.db.commit()
+                return "product not in stock", 0
+        if not self.db.update("Transactions t2", ["DateTime","Status"], [datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),tables.TransactionState.DONE.value],where=self.matchTransaction,TransactionNumber = answer[0][0]):
+            #print("rollback failed update")
+            self.db.rollback()
+            self.db.unlockTables()
+            self.db.commit()
+            return "Error trying to complete purchase", 0
+        self.db.unlockTables()
+        self.db.commit()
+        return "Purchase completed", 1
+
     def loadTransactions(self,userid):
         userid = self.decrypt(userid)
         col = "t1.TransactionNumber, DateTime, Status, Name, Make, Count, Price"
@@ -412,24 +468,29 @@ class labdb:
         else:
             return bool(self.db.select("Products", where=self.matchName + " and " + self.matchMake, Name = pname, Make = pmake))
 
-    def setStock(self, pid, stock):
+    def increaseStock(self, pid, amount):
+        """
+        increase stock by a given amount
+        """
+        if(amount  > 0):
+            answer = self.db.select("Products", col='InStock', where=self.matchPid, PID = pid)
+            stock = amount+answer[0][0]
+            return self.db.update("Products", "InStock", stock, where = self.matchPid, PID = pid)
+        return False
+
+    def setStock(self, pid, stock, tag = ""):
         """
         Set stock of product
         """
-        if(stock  > 0 ):
-            self.db.update("Products", "InStock", stock, where = self.matchPid, PID = pid)
-            return update(self, table, setCol, setValue, where = self.matchPid, PID = pid)
+        if(stock  >= 0):
+            return self.db.update("Products"+tag, "InStock", stock, where = self.matchPid, PID = pid)
         return False
 
     def addImagePath(self, pid, imagepath):
         """
         Adds image to product
         """
-        if(os.path.isfile(imagepath)):
-            self.db.update("Products", "InStock", stock)
-            update(self, table, setCol, setValue)
-            return True
-        return False
+        return self.db.update("Products", "Image", imagepath, where=self.matchPid, PID = pid)
 
     
     def close(self):
@@ -438,32 +499,32 @@ class labdb:
         """
         self.db.close()
 
-
+"""
 testing = True
 if __name__ == "__main__" and testing:
     db = labdb()
     if True:
-        db.db.startTransaction()
-        db.db.commit()
-        """
+
         user = "testuser"
         email = "testmail@mail.com"
         pw = "pw"
+        print(db.hasProduct(1))
         db.regUser(user, email, pw)
         db.addNewProduct("cykel","disney",999, imagepath="/images/image1.png")
         print(db.hasUserWith(user, email))
         print(db.hasUserWith(user))
         print(db.hasUserWith(email = email))
+        
         userid = db.validateUser(user, pw)
         print(db.getUserName(userid))
-        print(db.addToCart(userid, 1, 1))
-        print(db.addToCart(userid, 2, 1))
+        #print(db.addToCart(userid, 1, 1))
+        #print(db.addToCart(userid, 1, 1))
+        print(db.setStock(1, 20))
         print(db.getBasket(userid))
-        data = db.getProduct(1)
-        obj = {"pid":data[0],"path":data[5], "name":data[2],"make":data[3],"count":1 ,"price":data[4]}
-        print(obj)
+        print(db.checkout(userid))
+        print(db.getBasket(userid))
         db.close()
-        """
     else:
         print("except")
         db.close()
+"""
