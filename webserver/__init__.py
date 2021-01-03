@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, send_from_directory, safe_join, abort
 import mysql.connector
-import re, datetime, json
+import re, datetime, json, threading
 try:
     from . import labimp
     from . import tables
@@ -14,6 +14,7 @@ datab = labimp.labdb()
 
 @app.route('/')
 def start():
+    print(str(threading.active_count())+ " " + str(threading.get_ident()) + " "+ str(threading.get_native_id()))
     if(isUser(session.get("UserID"))):
         return render_template('home.html', user = True)
     return render_template('home.html')
