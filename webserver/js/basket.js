@@ -31,7 +31,8 @@ async function loadBasket()
     }
 }
 
-async function loadFromServer()
+
+function loadFromServer()
 {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange =  function()
@@ -39,14 +40,20 @@ async function loadFromServer()
         if(this.readyState == 4 && this.status == 200)
         {
             var response = this.responseText;
-            if(response != "")
+            var basket = JSON.parse(response);
+            console.log(basket)
+            if(basket.products.length)
             {
-                var basket = JSON.parse(response);
                 var date = new Date();
                 basket.dts = date.toISOString();
                 localStorage.setItem(cachename, JSON.stringify(basket));
                 generateHTML(basket);
             }
+            else if(localStorage.getItem(cachename))
+            {
+                localStorage.removeItem(cachename)
+            }
+
             
         } 
     }
@@ -59,6 +66,7 @@ function generateHTML(basket)
     console.log(basket);
     var products = basket.products;
     var table = document.getElementById("basketArea");
+    table.innerHTML="";
     var i;
     console.log(products);
     for(i in products)
@@ -183,9 +191,10 @@ async function increaseCount(pid)
                 return;
             }
         }
+        requestJSON(pid, mod);
+        return;
     }
     requestJSON(pid, mod, false);
-
 }
 
 async function decreaseCount(pid)
@@ -243,24 +252,39 @@ function requestJSON(pid, mod, hasBasket = true)
             if(response == "" || response == null)
             {
                 alert("You tried to add a non existing product!");
+                return;
             }
             else
             {
-                var jsobj = JSON.parse(response.toString());
-                if(hasBasket)
-                {
-                    var cache = localStorage.getItem(cachename);
-                    var basket = JSON.parse(cache);
-                    basket.products.push(jsobj);
+                try{
+                    var jsobj = JSON.parse(response.toString());
+                    if(jsobj.hasOwnProperty("message"))
+                    {
+                        alert(jsobj.message);
+                        return;
+                    }
+                    if(hasBasket)
+                    {
+                        var cache = localStorage.getItem(cachename);
+                        var basket = JSON.parse(cache);
+                        basket.products.push(jsobj);
+                        localStorage.setItem(cachename, JSON.stringify(basket))
+                    }
+                    else if(!isEmpty(jsobj)){
+                        var date = new Date();
+                        jsobj.dts = date.toISOString();
+                        localStorage.setItem(cachename, JSON.stringify(jsobj));
+                    }
+                    else
+                    {
+                        alert("Product not found")
+                        return;
+                    }
                 }
-                else if(!isEmpty(jsobj)){
-                    var date = new Date();
-                    jsobj.dts = date.toISOString();
-                    localStorage.setItem(cachename, JSON.stringify(jsobj));
-                }
-                else
+                catch
                 {
-                    alert("Product not found")
+                    alert("ERROR OCCOURED")
+                    return;
                 }
             }
         }
@@ -289,11 +313,56 @@ function updateServer(pid, mod)
         var text = this.responseText;
         if(text != "")
         {
-            localStorage.removeItem(cachename)
+            localStorage.removeItem(cachename);
             alert(text + "\n basket will be cleared");
         }
     }
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
     var data = {"pid":pid, "mod":mod}
     xhttp.send(JSON.stringify(data));
+}
+
+function checkout()
+{
+    loadFromServer();
+    var cache = localStorage.getItem(cachename)
+    console.log(cache)
+    if(!cache)
+    {
+        alert("basket is empty");
+        return;
+    }
+    var basket = JSON.parse(cache);
+    var products = basket.products;
+    var confirm = "Confirm purchase of:";
+    var totalprice = 0;
+    for(i in products)
+    {
+        totalprice += products[i].price * products[i].count;
+        confirm+="\n"+products[i].name + " by " + products[i].make + ", " + products[i].count + " x " +products[i].price + " = " + (products[i].price * products[i].count);
+    }
+    confirm+= "\n total price of:"+totalprice;
+    if(window.confirm(confirm))
+    {
+        var button = document.getElementById("checkout");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function()
+        {
+            var response = this.responseText;
+            var answer = JSON.parse(response);
+            console.log(response)
+            if(answer.success)
+            {
+                localStorage.removeItem(cachename);
+                var table = document.getElementById("basketArea");
+                table.innerHTML = "";
+            }
+            alert(answer.message);
+            location.reload();
+        };
+        
+        xhttp.open("GET", "/checkout", true);
+        xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
+        xhttp.send(); 
+    }
 }

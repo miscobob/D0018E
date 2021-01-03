@@ -24,6 +24,11 @@
             height:50px;
             width:50px;
         }
+        button.refresh
+        {
+            display:inline;
+            text-align:right;
+        }
 {% endblock %}
 {% block title %}Basket{% endblock %}
 {% block jsfiles %}
@@ -42,13 +47,12 @@ window.addEventListener("unload", function(){
 <h2>Your Basket</h2>
 {% endblock %}
 {% block content %}
+<button class="refresh" onclick="loadFromServer()">refresh basket</button>
 <p>Item shown here are in your basket<p>
 {% endblock %}
 {% block form %}
 <div id = "basketArea" class="basket">
 </div>
 
-<form action="/checkout_page" method="post">
-	<button type="button">Checkout</button>
-</form>
+<button type="button" id="checkout" onclick="checkout()">Checkout</button>
 {% endblock %}

@@ -1,15 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, send_from_directory, safe_join, abort
 import mysql.connector
-import re, datetime, json
+import re, datetime, json, os
+from werkzeug.utils import secure_filename
 try:
     from . import labimp
     from . import tables
 except :
     import labimp
     import tables
-
+    
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'CZ5iMX2KkTXkm9D1RyRqFYkedt-9C4mF'
+app.config['UPLOAD_FOLDER'] = "/var/www/D0018E/webserver/images"
 datab = labimp.labdb()
 
 @app.route('/')
@@ -24,12 +26,11 @@ def admin():
     return redirect('/admin/login')
 
 @app.route('/favicon.ico')
+@app.route('/null')
+@app.route('/admin/null')
 def favicon():
     return send_from_directory("images", "favicon.ico")
 
-@app.route('/null')
-def defaultImage():
-    return send_from_directory("images", "favicon.ico")
 
 @app.route('/login', methods = ["POST","GET"])
 def login():
@@ -82,6 +83,12 @@ def register():
         if datab.hasUserWith(username = username, email = email):
            return render_template('register.html', error = "User name or email is already used by other account")
         datab.regUser(username, email, password)
+        basket = request.form.get("basket")
+        if(basket):
+            userid = datab.validateUser(username, password)
+            basket = json.loads(basket)
+            for product in basket.products:
+                datab.addToCart(userid, product.pid, product.count)
         return redirect(url_for('login',fromRegister=True))
     return render_template('register.html')
 
@@ -124,7 +131,7 @@ def setNewPassword(htmlFile, username, admin = False):
 
 @app.route('/admin/registerEmployee', methods = ["POST"])
 def registerEmployee():
-    if request.method == "POST" and isEmployee(session.get("UserID"), TTLAdmin):
+    if request.method == "POST" and session.get("UserID") and hasAccess(session.get("UserID"),[tables.AccountAccess.ADMIN], TTLAdmin):
         obj = request.get_json()
         if obj:
             username = obj["username"]
@@ -158,12 +165,24 @@ def registerEmployee():
 """
 Route to shopping basket
 """
-@app.route('/basket', methods = ["POST","GET"])
+@app.route('/basket', methods = ["GET"])
 def basket():
     if isUser(session.get("UserID"), TTLUser):
         return render_template('basket.html', user = True)
     else:
         return render_template('basket.html')
+
+@app.route('/checkout', methods = ["GET"])
+def checkout():
+    if request.method == "GET":
+        if isUser(session.get("UserID")):
+            answer =  datab.checkout(session["UserID"])
+            obj = {}
+            obj["message"] = answer[0]
+            obj["success"] = answer[1]
+            return json.dumps(obj)
+    else:
+        return redirect('/')
 
 @app.route('/updateBasket', methods = ["POST"])
 def updateBasket():
@@ -177,13 +196,10 @@ def updateBasket():
             mod = int(request.form["mod"])
         if(datab.hasProduct(pid)):
             if isUser(session.get("UserID")):
-                username = getUserName()
-                if username:
-                    if not datab.addToCart(session["UserID"], pid, mod):
-                        return ""
-                    return "no product with id " + str(pid)
-                return("failed to verfiy user authenticity")
-            return ""
+                if not datab.addToCart(session["UserID"],pid, mod):
+                    return ""
+                return "product not in basket"
+            return "login before creating a basket"
         return "no product with id " + str(pid)
     else:
         return redirect("/")
@@ -210,11 +226,13 @@ def addProductToBasket():
                 if username:
                     if  not datab.addToCart(session["UserID"], pid, mod):
                         if hasBasket:
-                            response = getBasketItemAsJsonString(session["UserID"], pid, mod)
+                            response = getBasketItemAsJsonString(session["UserID"], pid)
                         else:
                             response = getBasketAsJsonString(session["UserID"])
                         return response
-                    return "{}"
+                    return "{\"message\":\"product not found\"}"
+            else:
+                return "{\"message\":\"please log in before adding to basket\"}"
             obj = getProductAsJsonString(pid)
             if hasBasket:
                 return obj
@@ -250,17 +268,46 @@ def productPage(pid):
     """
     Route to product page
     """
-
-    if request.method == "POST":
+    if(product := datab.getProduct(pid)):
+        if request.method == "POST":
+            if isUser(session.get("UserID"), TTLUser):
+                rating = int(request.form["rating"])
+                comment = str(request.form["textarea"])
+                datab.postReview(pid, session.get("UserID"), rating, comment)
         if isUser(session.get("UserID"), TTLUser):
-            rating = int(request.form["rating"])
-            comment = str(request.form["textarea"])
-            datab.postReview(pid, session.get("UserID"), rating, comment)
+            return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], user=True)
+        return render_template('product.html',  pid = product[0], pname = product[1], pmake =product[2])
+    else:
+        return redirect('/products')    
 
-    if isUser(session.get("UserID"), TTLUser):
-        return render_template('product.html', pname = pid, user=True)
-    return render_template('product.html', pname = pid)
-        
+@app.route('/admin/products/<int:pid>', methods = ["GET", "POST"])
+def adminProdcut(pid):
+    """
+    Route to product page
+    """
+    if(isEmployee(session.get("UserID"),TTLAdmin)):
+        if(product := datab.getProduct(pid)):
+            if request.method == "POST":
+                message = ""
+                if "path" in request.files:
+                    file = request.files['path']
+                    if file.filename and allowed_file(file.filename):
+                        path = secure_filename(file.filename)
+                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], path))
+                        if not datab.addImagePath(pid, "/images/"+path):
+                            message += "could not add image path to product"
+                    else:
+                        message += "no file or illegal file\n"
+                stock = int(request.form.get("stock"))
+                if stock:
+                    if not datab.increaseStock(pid, stock):
+                        message += "could not increase stock"
+                return render_template('adminProduct.html', error = message, pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
+            return render_template('adminProduct.html',pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
+        else:
+            return redirect("/admin/products")
+    else:
+        return redirect('/admin/login') 
 
 @app.route("/loadTransactions", methods = ["GET"])
 def loadTransactions():
@@ -327,17 +374,15 @@ def addProduct():
             pmake = obj["make"]
             price = obj["price"]
             stock = obj["stock"]
-            image = obj.get("path")
         else:
             pname = request.form["name"]
             pmake = request.form["make"]
             price = request.form["price"]
             stock = request.form["stock"]
-            image = request.form.get("path")
         if datab.hasProduct(pname = pname, pmake=pmake):
             return "<h3>Product with that name already exist for that brand</h3>"
         else:
-            datab.addNewProduct(pname, pmake, price, stock, image)
+            datab.addNewProduct(pname, pmake, price, stock)
             return "<h4>A new product has been added</h4>"
     return redirect("/")
 
@@ -423,7 +468,7 @@ def getProductsJSON():
     dic["products"] = []
 
     for i in data:
-        obj = {"pid":i[0],"path":i[5], "name":i[1],"make":i[2],"stock":1 ,"price":i[3]}
+        obj = {"pid":i[0],"path":i[5], "name":i[1],"make":i[2],"stock":i[4] ,"price":i[3]}
         dic["products"].append(obj)
     return json.dumps(dic)
 
@@ -449,8 +494,15 @@ def getBasketAsJsonString(userid):
 def convertBasketResponseToJson(data):
     obj = {"pid":data[0],"path":data[1], "name":data[2],"make":data[3],"count":data[4] ,"price":data[5]}
     return obj
-    
 
+def allowed_file(filename):
+    """
+    https://flask.palletsprojects.com/en/1.1.x/patterns/fileuploads/
+    """
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS    
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 TTLUser = datetime.timedelta(days = 7)
 TTLAdmin = datetime.timedelta(days = 1)
 if __name__ == "__main__":

@@ -27,11 +27,9 @@
 {% endblock %}
 {% block title %}Products{% endblock %}
 {% block jsfiles %}
-<script src="/js/basket.js"></script>
-<script src="/js/products.js"></script>
 <script src="/js/adminProducts.js"></script>
 <script>
-window.onunload= loadProducts();
+window.onunload= loadFromServer();
 </script>
 {% endblock %}
 {% block header %}

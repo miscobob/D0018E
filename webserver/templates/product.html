@@ -3,14 +3,14 @@
 {% block jsfiles %}
 <script src="/js/product.js"></script>
 <script>
-window.onunload= loadReviews({{pname}});
+window.onunload= loadReviews({{pid}});
 </script>
 {% endblock %}
 {% block header %}
 <h2>Product {{pname}}</h2>
 {% endblock %}
 {% block content %}
-<p>This is the product page for {{pname}} made by {{pmake}}</p>
+<p>This is the product page for <i>{{pname}}</i> made by <i>{{pmake}}</i></p>
 {% endblock %}
 {% block form %}
 {% if user %}
