@@ -452,7 +452,7 @@ class labdb:
             values = "%s, %s, %s,%s"
             self.db.insertIntoTable("Review", values, (pid, uid, rating, comment))
         else:
-            values = "%s, %s, %s, NULL" %(pid, uid, rating)
+            values = "%s, %s, %s, NULL" # %(pid, uid, rating)
             self.db.insertIntoTable("Review", values, (pid, uid, rating))
         self.db.commit()
 
