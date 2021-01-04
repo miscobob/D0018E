@@ -296,10 +296,10 @@ def productPage(pid):
     if(product := datab.getProduct(pid)):
         if request.method == "POST":
             if isUser(session.get("UserID"), TTLUser):
-                rating = int(request.form.get("rating"))
+                rating = request.form.get("rating")
                 comment = str(request.form["textarea"])
                 if rating:
-                    datab.postReview(pid, session.get("UserID"), rating, comment)
+                    datab.postReview(pid, session.get("UserID"), int(rating), comment)
                 else:
                     return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], user=True, error='No rating given')
                 return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], user=True)
