@@ -19,7 +19,7 @@ function getTranscations()
                     alert(transactions["message"]);
                     return;
                 }
-                if( Object.keys(myObject).length == 0)
+                if( Object.keys(transactions).length == 0)
                 {
                     document.getElementById("response").innerHTML = "No transactions found";
                 }
