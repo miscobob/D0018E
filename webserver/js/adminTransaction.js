@@ -19,14 +19,20 @@ function getTranscations()
                     alert(transactions["message"]);
                     return;
                 }
-                document.getElementById("response").innerHTML = "";
-                for(var i in transactions)
+                if( Object.keys(myObject).length == 0)
                 {
-                    var row = document.createElement("DIV");
-                    row.setAttribute("class","trow");
-                    row.innerHTML = "Transaction:"+i+"<br>";
-                    parseTransaction(transactions[i], row);
-                    document.getElementById("response").appendChild(row);
+                    document.getElementById("response").innerHTML = "No transactions found";
+                }
+                else{
+                    document.getElementById("response").innerHTML = "";
+                    for(var i in transactions)
+                    {
+                        var row = document.createElement("DIV");
+                        row.setAttribute("class","trow");
+                        row.innerHTML = "Transaction:"+i+"<br>";
+                        parseTransaction(transactions[i], row);
+                        document.getElementById("response").appendChild(row);
+                    }
                 }
             }
             else

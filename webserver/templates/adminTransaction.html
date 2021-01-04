@@ -17,15 +17,14 @@
 <script src="/js/adminTransaction.js"></script>
 {% endblock %}
 {% block header %}
-<h2>Account page</h2>
+<h2>User transaction page</h2>
 {% endblock %}
 {% block content %}
-<p>This is your account page {{user}}</p>
 {% endblock %}
 {% block form %}
 <p>Search User transaction, enter email or username:<input id="data" type="text" name="var"></p>
 <p><button onclick="getTranscations()">submit</button></p>
 {% endblock %}
 {% block after %}
-<div class = "response" id="response"></div>
+<div class = "response" id="response">response here</div>
 {% endblock %}
