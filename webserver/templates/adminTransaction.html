@@ -1,0 +1,31 @@
+{% extends "adminBase.html" %}
+{% block div %}
+.trow
+{
+    display:block;
+    border-style:solid;
+    border-width:2px 2px;
+    padding: 5px 10px 5px 10px;
+}
+.response
+{
+    padding: 5px;
+}
+{% endblock %}
+{% block title %}Account{% endblock %}
+{%block jsfiles %}
+<script src="/js/adminTransaction.js"></script>
+{% endblock %}
+{% block header %}
+<h2>Account page</h2>
+{% endblock %}
+{% block content %}
+<p>This is your account page {{user}}</p>
+{% endblock %}
+{% block form %}
+<p>Search User transaction, enter email or username:<input id="data" type="text" name="var"></p>
+<p><button onclick="getTranscations()">submit</button></p>
+{% endblock %}
+{% block after %}
+<div class = "response" id="response"></div>
+{% endblock %}

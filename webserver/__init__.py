@@ -204,6 +204,30 @@ def updateBasket():
     else:
         return redirect("/")
 
+@app.route('/admin/transaction', methods = ["POST", "GET"])
+def adminTransaction():
+    if isEmployee(session.get("UserID"), TTLAdmin):
+        if request.method == "POST":
+            obj = request.get_json()
+            if obj:
+                var = obj["var"]
+            else:
+                var = request.form["var"]
+            userid = datab.getUserID(var)
+            obj = {}
+            if not userid:
+                obj["message"] = "No user found"
+                return obj
+            transactions = datab.loadTransactions(userid)
+            for p in transactions:
+                if(obj.get(str(p[0])+" "+p[2]+" "+str(p[1]))):
+                    obj[str(p[0])+" "+p[2]+" "+str(p[1])].append({"name":p[3],"make":p[4],"count":p[5],"price":p[6]})
+                else:
+                    obj[str(p[0])+" "+p[2]+" "+str(p[1])] = [{"name":p[3],"make":p[4],"count":p[5],"price":p[6]}]
+            return obj
+        else:
+            return render_template('adminTransaction.html',user = True)
+
 
 @app.route('/addProductToBasket', methods = ["POST"])
 def addProductToBasket():

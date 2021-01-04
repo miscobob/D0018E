@@ -268,7 +268,7 @@ function requestJSON(pid, mod, hasBasket = true)
                         var cache = localStorage.getItem(cachename);
                         var basket = JSON.parse(cache);
                         basket.products.push(jsobj);
-                        localStorage.setItem(cachename, JSON.stringify(basket))
+                        localStorage.setItem(cachename, JSON.stringify(basket));
                     }
                     else if(!isEmpty(jsobj)){
                         var date = new Date();

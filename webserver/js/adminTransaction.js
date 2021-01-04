@@ -1,11 +1,8 @@
-var loaded = false;
 
 function getTranscations()
 {
-    if(loaded)
-    {
-        return;
-    }
+    var field = document.getElementById("data");
+    var data = field.value;
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function()
     {
@@ -17,6 +14,12 @@ function getTranscations()
             var response = xhttp.responseText;
             if(response != ""){
                 var transactions = JSON.parse(response);
+                if(transactions.hasOwnProperty("message"))
+                {
+                    alert(transactions["message"]);
+                    return;
+                }
+                document.getElementById("response").innerHTML = "";
                 for(var i in transactions)
                 {
                     var row = document.createElement("DIV");
@@ -25,7 +28,6 @@ function getTranscations()
                     parseTransaction(transactions[i], row);
                     document.getElementById("response").appendChild(row);
                 }
-                loaded = true;
             }
             else
             {
@@ -33,9 +35,9 @@ function getTranscations()
             }
         }
     }
-    xhttp.open("GET","/loadTransactions", true);
+    xhttp.open("POST","#", true);
     xhttp.setRequestHeader('content-type',"application/json;charset=UTF-8");
-    xhttp.send();
+    xhttp.send("{\"var\":\""+data+"\"}");
 }
 
 

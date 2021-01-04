@@ -299,6 +299,11 @@ class labdb:
             return ""
         return self.encrypt(answer[0][0])
 
+    def getUserID(self, var):
+        answer = self.db.select("Accounts","UserID",where= self.matchEmail+ " or " + self.matchUserName, UserName = var, Email = var)
+        if answer:
+            return self.encrypt(answer[0][0])
+        return ""
 
     def updatePassword(self, userId, oldpassword, newpassword):
         """
