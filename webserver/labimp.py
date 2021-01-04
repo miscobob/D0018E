@@ -24,10 +24,10 @@ class databas:
     Insert values into table, both table and values should both be pre-generated strings to be so it matches
     wished insert, this method autocommits, should not be done togheter with a transaction
     """
-    def insertIntoTable(self, table, values):
+    def insertIntoTable(self, table, values, inserts):
         self.testConnection()
         #print('INSERT INTO ' + table + ' VALUES('+values + ')')
-        self.dbCursor.execute('INSERT INTO ' + table + ' VALUES('+values + ')')
+        self.dbCursor.execute('INSERT INTO ' + table + ' VALUES('+values + ')',inserts)
             
     """
     returns query from given table with the option
@@ -237,8 +237,8 @@ class labdb:
     Registers a account as user with given email and given password with a given accvlvl
     """
     def regAccount(self, user, email, pw, acclvl):
-        values = "'%s', '%s', '%s', '%s'" % (user, email, pw, acclvl)
-        self.db.insertIntoTable(tables.accountsInsert, values)
+        values = "%s, %s, %s,%s"
+        self.db.insertIntoTable(tables.accountsInsert, values, (user, email, pw, acclvl.value))
         self.db.commit()
 
     """
@@ -334,8 +334,8 @@ class labdb:
         userid = self.crypto.decrypt(userid).decode("utf-8")
         transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, Status = tables.TransactionState.BASKET.value, UserID = userid)
         if not transaction: # check if new basket needed
-            values = "'%s', '%s'" % (userid, tables.TransactionState.BASKET.value)
-            self.db.insertIntoTable(tables.transactionsInsert, values)
+            values = "%s, %s"
+            self.db.insertIntoTable(tables.transactionsInsert, values,(userid, tables.TransactionState.BASKET.value))
             self.db.commit()
             transaction = self.db.select("Transactions", col="TransactionNumber", where=self.matchStatus+" AND "+self.matchUserID, Status = tables.TransactionState.BASKET.value, UserID = userid)
             transnr = transaction[0][0]
@@ -355,7 +355,7 @@ class labdb:
                 else:
                     return 1
         if nr >= 1:
-            self.db.insertIntoTable(tables.transactionDataInsert, "'%s', '%s', '%s'"%(transnr, productid, nr))
+            self.db.insertIntoTable(tables.transactionDataInsert, "%s, %s, %s",(transnr, productid, nr))
             self.db.commit()
             return 0
         return 1
@@ -429,11 +429,11 @@ class labdb:
         Adds a product to database
         """
         if imagepath:
-            values = "'%s', '%s', '%s', '%s', '%s'" % (name, make, price, stock, imagepath)
-            self.db.insertIntoTable(tables.productsInsertImage, values)
+            values = "%s, %s, %s, %s, %s" 
+            self.db.insertIntoTable(tables.productsInsertImage, values, (name, make, price, stock, imagepath))
         else:
-            values = "'%s', '%s', '%s', '%s'" % (name, make, price, stock)
-            self.db.insertIntoTable(tables.productsInsert, values)
+            values = "%s, %s, %s, %s"
+            self.db.insertIntoTable(tables.productsInsert, values, (name, make, price, stock))
         self.db.commit()
 
     def getProducts(self):
@@ -449,10 +449,11 @@ class labdb:
             self.db.commit()
             return
         if comment:
-            values = "'%s', '%s', '%s', '%s'" %(pid, uid, rating, comment)
+            values = "%s, %s, %s,%s"
+            self.db.insertIntoTable("Review", values, (pid, uid, rating, comment))
         else:
-            values = "'%s', '%s', '%s', NULL" %(pid, uid, rating)
-        self.db.insertIntoTable("Review", values)
+            values = "%s, %s, %s, NULL" %(pid, uid, rating)
+            self.db.insertIntoTable("Review", values, (pid, uid, rating))
         self.db.commit()
 
     def getReviews(self, pid):
