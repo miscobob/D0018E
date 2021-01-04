@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 import mysql.connector
 import re, datetime, json, os
 from werkzeug.utils import secure_filename
+
 try:
     from . import labimp
     from . import tables
@@ -325,7 +326,7 @@ def adminProdcut(pid):
                 stock = int(request.form.get("stock"))
                 if stock:
                     if not datab.increaseStock(pid, stock):
-                        message += "could not increase stock"
+                        message += "could not update stock"
                 return render_template('adminProduct.html', error = message, pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
             return render_template('adminProduct.html',pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
         else:
