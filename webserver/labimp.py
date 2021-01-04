@@ -472,9 +472,9 @@ class labdb:
         """
         increase stock by a given amount
         """
-        if(amount  > 0):
-            answer = self.db.select("Products", col='InStock', where=self.matchPid, PID = pid)
-            stock = amount+answer[0][0]
+        answer = self.db.select("Products", col='InStock', where=self.matchPid, PID = pid)
+        stock = amount+answer[0][0]
+        if(stock >= 0):
             return self.db.update("Products", "InStock", stock, where = self.matchPid, PID = pid)
         return False
 
