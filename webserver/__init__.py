@@ -329,7 +329,7 @@ def adminProdcut(pid):
                         message += "no file or illegal file\n"
                 stock = request.form.get("stock")
                 price = request.form.get("price")
-                if stock:
+                if stock and stock != 0:
                     if not datab.increaseStock(pid, int(stock)):
                         message += "could not update stock"
                 if price or price >= 0:
