@@ -22,6 +22,7 @@ function generateHTML(productlist)
 {
 	var products = productlist.products;
     var table = document.getElementById("productsArea");
+    table.innerHTML = "";
     var i;
     for(i in products)
     {
@@ -61,7 +62,7 @@ function addProduct()
             var response = xhttp.responseText;
             document.getElementById("response").innerHTML = response;
             form.reset();
-            location.reload();
+            loadFromServer();
         }
     }
     if (name == "")
