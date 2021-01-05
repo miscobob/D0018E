@@ -320,19 +320,20 @@ def adminProdcut(pid):
                 message = ""
                 if "path" in request.files:
                     file = request.files['path']
-                    if file.filename and allowed_file(file.filename):
-                        path = secure_filename(file.filename)
-                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], path))
-                        if not datab.addImagePath(pid, "/images/"+path):
-                            message += "could not add image path to product"
-                    else:
-                        message += "no file or illegal file\n"
+                    if file.filename:
+                        if allowed_file(file.filename):
+                            path = secure_filename(file.filename)
+                            file.save(os.path.join(app.config['UPLOAD_FOLDER'], path))
+                            if not datab.addImagePath(pid, "/images/"+path):
+                                message += "could not add image path to product"
+                        else:
+                            message += "Not valid image type\n"
                 stock = request.form.get("stock")
                 price = request.form.get("price")
                 if stock and int(stock) != 0:
                     if not datab.increaseStock(pid, int(stock)):
                         message += "could not update stock"
-                if price or price >= 0:
+                if price or int(price) >= 0:
                     if not datab.setPrice(pid, int(price)):
                         message += "could not update price"
                 return render_template('adminProduct.html', error = message, pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
