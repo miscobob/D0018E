@@ -301,11 +301,11 @@ def productPage(pid):
                 if rating:
                     datab.postReview(pid, session.get("UserID"), int(rating), comment)
                 else:
-                    return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], user=True, error='No rating given')
-                return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], user=True)
+                    return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], price = product[3], user=True, error='No rating given')
+                return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], price = product[3], user=True)
         if isUser(session.get("UserID"), TTLUser):
-            return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], user=True)
-        return render_template('product.html',  pid = product[0], pname = product[1], pmake =product[2])
+            return render_template('product.html',pid = product[0], pname = product[1], pmake =product[2], price = product[3], user=True)
+        return render_template('product.html',  pid = product[0], pname = product[1], pmake =product[2], price = product[3])
     else:
         return redirect('/products')    
 
