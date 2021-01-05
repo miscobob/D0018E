@@ -32,7 +32,7 @@ async function loadBasket()
 }
 
 
-function loadFromServer()
+function loadFromServer(bool = true)
 {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange =  function()
@@ -57,7 +57,7 @@ function loadFromServer()
             
         } 
     }
-    xhttp.open("GET", "/loadBasket", true);
+    xhttp.open("GET", "/loadBasket", bool);
     xhttp.send();
 }
 
@@ -324,7 +324,7 @@ function updateServer(pid, mod)
 
 function checkout()
 {
-    loadFromServer();
+    loadFromServer(bool = false);
     var cache = localStorage.getItem(cachename)
     console.log(cache)
     if(!cache)
