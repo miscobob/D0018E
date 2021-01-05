@@ -369,7 +369,7 @@ class labdb:
         """
         userid = self.decrypt(userid)
         joinTables = ["Products t2", "Transactions t3"]
-        col = "Item, Image, Name, Make, Count, Price"
+        col = "Item, Image, Name, Make, Count, t2.Price"
         conditions = ["t1.Item = t2.ProductID", "t1.TransactionNumber=t3.TransactionNumber"]
         if pid:
             where = "t3."+self.matchUserID+" and "+ "t3."+self.matchStatus + " and " +"t1."+self.matchItem
@@ -392,7 +392,7 @@ class labdb:
         joinTables = ["Transactions t2", "Products t3"]
         conditions = ["t1.TransactionNumber = t2.TransactionNumber", "t1.Item = t3.ProductID"]
         where = "t2."+self.matchUserID +" and t2."+ self.matchStatus 
-        answer = self.db.select("TransactionData t1", "t1.TransactionNumber, Item, InStock, Count", joinTables, conditions, where, UserID = userid, Status = tables.TransactionState.BASKET.value)
+        answer = self.db.select("TransactionData t1", "t1.TransactionNumber, Item, InStock, Count, Name, t3.Price", joinTables, conditions, where, UserID = userid, Status = tables.TransactionState.BASKET.value)
         if not answer:
             self.db.rollback()
             self.db.unlockTables()
@@ -400,7 +400,13 @@ class labdb:
             return "Basket empty", 0
         for prod in answer:
             stockleft = prod[2]-prod[3]
-            if stockleft < 0 or not self.setStock(prod[1],stockleft, " t3"):
+            update = self.db.update("TransactionData t1", "Price", prod[5], where = self.matchTransaction+ " and "+ self.matchItem, TransactionNumber = prod[0], Item = prod[1])
+            if not update:
+                self.db.rollback()
+                self.db.unlockTables()
+                self.db.commit()
+                return "ERROR could not confirm PRICE", 0
+            if stockleft < 0 or not self.setStock(prod[1],stockleft, " t3") :
                 #("rollback not in stock")
                 self.db.rollback()
                 self.db.unlockTables()
@@ -418,7 +424,7 @@ class labdb:
 
     def loadTransactions(self,userid):
         userid = self.decrypt(userid)
-        col = "t1.TransactionNumber, DateTime, Status, Name, Make, Count, Price"
+        col = "t1.TransactionNumber, DateTime, Status, Name, Make, Count, t1.Price"
         joinTables = ["Transactions t2", "Products t3"]
         conditions = ["t1.TransactionNumber = t2.TransactionNumber", "t1.Item = t3.ProductID"]
         where = "t2."+self.matchUserID + " and (t2." +self.matchStatus%{"Status":"%(Status1)s"}+ " or t2." + self.matchStatus%{"Status":"%(Status2)s"}+")"
@@ -490,6 +496,11 @@ class labdb:
         """
         if(stock  >= 0):
             return self.db.update("Products"+tag, "InStock", stock, where = self.matchPid, PID = pid)
+        return False
+
+    def setPrice(self, pid, price):
+        if(price >= 0):
+            return self.db.update("Products", "Price", price, where = self.matchPid, PID = pid)
         return False
 
     def addImagePath(self, pid, imagepath):

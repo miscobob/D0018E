@@ -15,6 +15,7 @@ window.onunload= loadReviews({{pid}});
 {% block form %}
 <form action="#" method="post" enctype="multipart/form-data">
 	<p>adjust stock:<input type="number" name="stock" value ="0"></p>
+	<p>set new price:<input type="number" name="price" value ="0"></p>
 	{% if not path %}
 		<p><label for="file">add image:</label><input type="file" id ="file" accept=".png,.jpg,image/*" name="path"></p>
 	{% endif %}

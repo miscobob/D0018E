@@ -42,6 +42,7 @@ tables['TransactionData'] = (
     '`TransactionNumber` int NOT NULL,'
     '`Item` int NOT NULL,'
     '`Count` int NOT NULL,'
+    '`Price` int DEFAULT NULL,'
     'KEY `TransactionNumber_idx` (`TransactionNumber`),'
     'KEY `ProductId_idx` (`Item`),'
     'CONSTRAINT `ProductIdData` FOREIGN KEY (`Item`) REFERENCES `Products` (`ProductID`),'

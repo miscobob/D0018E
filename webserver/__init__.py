@@ -327,10 +327,14 @@ def adminProdcut(pid):
                             message += "could not add image path to product"
                     else:
                         message += "no file or illegal file\n"
-                stock = int(request.form.get("stock"))
+                stock = request.form.get("stock")
+                price = request.form.get("price")
                 if stock:
-                    if not datab.increaseStock(pid, stock):
+                    if not datab.increaseStock(pid, int(stock)):
                         message += "could not update stock"
+                if price or price >= 0:
+                    if not datab.setPrice(pid, int(price)):
+                        message += "could not update price"
                 return render_template('adminProduct.html', error = message, pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
             return render_template('adminProduct.html',pid = product[0], pname = product[1], pmake =product[2], price = product[3], stock= product[4], path=product[5], user=True)
         else:
